@@ -1,0 +1,74 @@
+{
+  "name": "yovy-nav",
+  "version": "1.3.1",
+  "description": "A living island navigation bar for your Windows desktop",
+  "main": "yovy.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "author": "AmerTech",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.17.0"
+  },
+  "build": {
+    "appId": "com.yovynav.app",
+    "productName": "YOVY-NAV",
+    "copyright": "Copyright © 2026 YOVY-NAV",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "build/icon.png",
+      "build/icon.ico",
+      "!promo/**",
+      "!dist/**",
+      "!*.cmd",
+      "!setup-log.txt",
+      "!**/*.map",
+      "!helper/*.cs",
+      "!helper/*.cmd"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "yovy-nav",
+      "repo": "yovy-nav"
+    },
+    "asarUnpack": [
+      "helper/Yovy-helper.exe"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico",
+      "executableName": "YOVY-NAV"
+    },
+    "nsis": {
+      "oneClick": false,
+      "artifactName": "YOVY-NAV-Setup-${version}.${ext}",
+      "license": "LICENSE",
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "YOVY-NAV",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "YOVY-NAV-${version}-portable.exe"
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11",
+    "node-ical": "^0.27.3"
+  }
+}

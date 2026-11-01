@@ -74,14 +74,7 @@ npm start          # run it locally
 npm run dist       # build the Windows installer into dist/
 ```
 
-## Support YOVY-NAV ☕
 
-YOVY-NAV is free, with no ads and no tracking, and it always will be. If it makes your day a little better, you can buy us a coffee:
-
-- **Ko-fi** (cards, PayPal): [ko-fi.com/binamer](https://ko-fi.com/binamer)
-- **InstaPay** (Egypt): [Send via InstaPay](https://ipn.eg/S/binamerbm/instapay/38txJO)
-
-Stars ⭐ and sharing it with a friend help a lot too.
 
 ## License
 

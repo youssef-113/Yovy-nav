@@ -204,7 +204,7 @@ bridge.onToggle(() => {
 });
 
 // ---------------- drag to move (docks when dropped at the top edge) ----------------
-const NO_DRAG = 'button, input, .slider, .file, .app, .pick, .picker, .clip-item, .shelf-items';
+const NO_DRAG = 'button, input, textarea, .slider, .file, .app, .pick, .picker, .clip-item, .shelf-items, .shelf-note-card';
 let press = null;
 let justMoved = false;
 

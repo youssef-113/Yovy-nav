@@ -42,6 +42,10 @@ Progress, speed and time left while you work, with IDM Yovy — pause, resume or
 
 ![Downloads](promo/en/04-downloads.png)
 
+### Shelf & Quick Sticky Notes
+
+Drag files or screenshots onto the island to keep them handy and drag them out anywhere. Beside your staged files, an instant scratchpad keeps phone numbers, code snippets, and to-do lists auto-saved to `%AppData%\yovy-nav\notes.json` with 0.0% idle CPU load.
+
 ### Smart about what you do
 
 Copy a link, a sum or a color and the island knows what to do with it. It also lets you know when an app turns on your mic or camera.

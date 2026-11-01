@@ -82,4 +82,9 @@ contextBridge.exposeInMainWorld('Yovy', {
     copyClip: (i) => ipcRenderer.send('clip-copy', i),
     clearClips: () => ipcRenderer.send('clip-clear'),
   },
+
+  notes: {
+    get: () => ipcRenderer.invoke('notes-get'),
+    save: (data) => ipcRenderer.send('notes-save', data),
+  },
 });

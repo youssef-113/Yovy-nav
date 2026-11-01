@@ -304,21 +304,48 @@
           </div>
         </section>
 
-        <!-- SHELF -->
+        <!-- SHELF & SCRATCHPAD -->
         <section id="v-shelf" class="view empty-shelf" role="tabpanel">
-          <div class="dropzone">
-            <svg class="s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            <div>
-              <div class="title">Drop files here</div>
-              <div class="sub wrap">Drag files onto the island to keep them handy, then drag them out anywhere.</div>
+          <div class="shelf-col shelf-col-files">
+            <div class="dropzone" id="shelf-dropzone">
+              <svg class="s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              <div>
+                <div class="title">Drop files here</div>
+                <div class="sub wrap">Keep files or screenshots handy to drag out anywhere.</div>
+              </div>
+            </div>
+            <div class="shelf" id="shelf-files-area">
+              <div class="shelf-head">
+                <span id="shelf-count" class="sub"></span>
+                <button id="shelf-clear" class="pill small">Clear</button>
+              </div>
+              <div id="shelf-items" class="shelf-items"></div>
             </div>
           </div>
-          <div class="shelf">
-            <div class="shelf-head">
-              <span id="shelf-count" class="sub"></span>
-              <button id="shelf-clear" class="pill small">Clear</button>
+
+          <div class="shelf-col shelf-col-notes">
+            <div class="shelf-note-card">
+              <div class="note-head">
+                <div class="note-title">
+                  <svg class="s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span>Quick Note</span>
+                  <span id="note-status" class="note-status"></span>
+                </div>
+                <div class="note-actions">
+                  <button id="note-copy" class="mini-btn" title="Copy note" aria-label="Copy note">
+                    <svg class="s" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                  <button id="note-clear" class="mini-btn" title="Clear note" aria-label="Clear note">
+                    <svg class="s" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              </div>
+              <textarea id="shelf-note" placeholder="Quick phone number, code snippet, or to-do list…" spellcheck="false" autocomplete="off"></textarea>
+              <div class="note-foot">
+                <span id="note-count" class="note-count">0 chars</span>
+                <span class="note-hint">Stored in notes.json</span>
+              </div>
             </div>
-            <div id="shelf-items" class="shelf-items"></div>
           </div>
         </section>
 

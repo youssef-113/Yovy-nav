@@ -651,6 +651,14 @@ ipcMain.on('shelf-open', (_e, p) => shelf.open(p));
 ipcMain.on('shelf-reveal', (_e, p) => shelf.reveal(p));
 ipcMain.on('shelf-drag', (e, p) => shelf.startDrag(e.sender, p));
 
+// --- notes (saved in %AppData%\yovy-nav\notes.json) ---
+ipcMain.handle('notes-get', () => settings.load('notes.json', { text: '', updated: 0 }));
+ipcMain.on('notes-save', (_e, data) => {
+  if (data && typeof data.text === 'string') {
+    settings.save('notes.json', { text: data.text, updated: Date.now() });
+  }
+});
+
 // --- system ---
 ipcMain.handle('system-snapshot', () => system.snapshot());
 ipcMain.on('clip-copy', (_e, i) => system.copyClip(i));

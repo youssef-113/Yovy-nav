@@ -26,3 +26,8 @@ desktop.ini
 .idea/
 *.suo
 *.user
+# Windows
+*.*.exe-uninstaller.exe
+*.*.exe
+*.*.msi
+build/Nova\ Island\ 3.0.0-beta.25.dmg

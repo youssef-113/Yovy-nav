@@ -787,9 +787,7 @@ ipcMain.on('reminder-preview', () => send('reminder-now'));
 ipcMain.handle('general-get', () => generalState());
 // Settings > Support: the page names a link, main holds the addresses
 const SUPPORT_LINKS = {
-  kofi: 'https://ko-fi.com/binamer',
-  instapay: 'https://ipn.eg/S/binamerbm/instapay/38txJO',
-  github: 'https://github.com/yovy-nav/yovy-nav',
+  github: 'https://github.com/youssef-113/Yovy-nav',
 };
 ipcMain.on('open-support', (_e, key) => {
   if (Object.hasOwn(SUPPORT_LINKS, key)) shell.openExternal(SUPPORT_LINKS[key]);

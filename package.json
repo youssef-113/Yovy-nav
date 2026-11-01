@@ -36,8 +36,8 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "yovy-nav",
-      "repo": "yovy-nav"
+      "owner": "youssef-113",
+      "repo": "Yovy-nav"
     },
     "asarUnpack": [
       "helper/Yovy-helper.exe"

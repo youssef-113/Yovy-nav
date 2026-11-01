@@ -8,8 +8,8 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 
 [**Download for Windows**](../../releases/latest) · Free and open source (GPL v3)
 
-[![Latest release](https://img.shields.io/github/v/release/yovy-nav/yovy-nav?style=for-the-badge&label=Version&color=3b82f6&labelColor=1c1a2e)](../../releases/latest)
-[![Stars](https://img.shields.io/github/stars/yovy-nav/yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](../../stargazers)
+[![Latest release](https://img.shields.io/github/v/release/youssef-113/Yovy-nav?style=for-the-badge&label=Version&color=3b82f6&labelColor=1c1a2e)](https://github.com/youssef-113/Yovy-nav/releases/latest)
+[![Stars](https://img.shields.io/github/stars/youssef-113/Yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](https://github.com/youssef-113/Yovy-nav/stargazers)
 [![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-ff5e5b?style=for-the-badge&labelColor=1c1a2e&logo=kofi&logoColor=white)](https://ko-fi.com/binamer)
 
 ![Meet YOVY-NAV](promo/en/01-hero.png)

@@ -12,7 +12,7 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 [![Stars](https://img.shields.io/github/stars/youssef-113/Yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](https://github.com/youssef-113/Yovy-nav/stargazers)
 [![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-ff5e5b?style=for-the-badge&labelColor=1c1a2e&logo=kofi&logoColor=white)](https://ko-fi.com/binamer)
 
-![Meet YOVY-NAV](promo/en/01-hero.png)
+![Meet YOVY-NAV](promo\en\01-hero.jpg)
 
 </div>
 
@@ -22,25 +22,25 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 
 A little companion who lives in your island. Yovy keeps you company while you focus, welcomes you back, cheers your wins, and reminds you to drink water and rest your eyes.
 
-![Yovy](promo/en/02-Yovy.png)
+![Yovy](promo\en\02-yovy.jpg)
 
 ### Keeps playing while you browse
 
 Title, artwork and live waveforms of whatever is playing, plus a floating mini player in one click.
 
-![Browser](promo/en/03-browser.png)
+![Browser](promo\en\03-browser.jpg)
 
 ### Never miss a prayer
 
 Prayer times with a heads-up before the adhan, plus dhikr, du'a and Qur'an verses in the KFGQPC Hafs script, as often as you choose.
 
-![Prayer](promo/en/06-faith.png)
+![Prayer](promo\en\06-faith.jpg)
 
 ### Downloads, at a glance
 
 Progress, speed and time left while you work, with IDM Yovy — pause, resume or open a file in one click.
 
-![Downloads](promo/en/04-downloads.png)
+![Downloads](promo\en\04-downloads.jpg)
 
 ### Shelf & Quick Sticky Notes
 
@@ -50,17 +50,17 @@ Drag files or screenshots onto the island to keep them handy and drag them out a
 
 Copy a link, a sum or a color and the island knows what to do with it. It also lets you know when an app turns on your mic or camera.
 
-![Smart](promo/en/05-smart.png)
+![Smart](promo\en\05-smart.jpg)
 
 ### Your island, your way
 
 Turn on only what you need from one simple settings window. Vertical on the screen edge, hides in full screen, starts with Windows.
 
-![Settings](promo/en/07-settings.png)
+![Settings](promo\en\07-settings.jpg)
 
 ## Install on Windows
 
-1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.1.exe`) from the [latest release](../../releases/latest).
+1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.2.exe`) from the [latest release](../../releases/latest).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not code-signed yet — choose **More info → Run anyway**.
 3. The island appears at the top of your screen. Press **Ctrl + Alt + I** to open it.
 

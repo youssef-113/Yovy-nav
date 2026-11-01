@@ -64,6 +64,7 @@ static class Win {
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder sb, int n);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder sb, int n);
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  [DllImport("user32.dll", ExactSpelling = true)] static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
   [DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint thread);
   [DllImport("user32.dll")] static extern short GetKeyState(int vk);
   [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();
@@ -144,7 +145,24 @@ static class Win {
     var sb = new StringBuilder(64);
     GetClassName(h, sb, 64);
     string cls = sb.ToString();
-    if (cls == "Progman" || cls == "WorkerW" || cls == "Shell_TrayWnd") return false;
+    if (cls == "Progman" || cls == "WorkerW" || cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") return false;
+    if (cls == "CabinetWClass" || cls == "ExploreWClass") return false;
+
+    IntPtr root = GetAncestor(h, 2);
+    if (root != IntPtr.Zero && root != h) {
+      var rsb = new StringBuilder(64);
+      GetClassName(root, rsb, 64);
+      string rcls = rsb.ToString();
+      if (rcls == "CabinetWClass" || rcls == "ExploreWClass") return false;
+    }
+
+    uint pid;
+    GetWindowThreadProcessId(h, out pid);
+    try {
+      string proc = System.Diagnostics.Process.GetProcessById((int)pid).ProcessName;
+      if (string.Equals(proc, "explorer", StringComparison.OrdinalIgnoreCase)) return false;
+    } catch { }
+
     RECT r;
     if (!GetWindowRect(h, out r)) return false;
     var mi = new MONITORINFO();

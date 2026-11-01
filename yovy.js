@@ -360,9 +360,13 @@ function startMedia() {
         if (data.error) console.error('[media]', data.error);
         if (typeof data.clip === 'number') onClipboardSeq(data.clip, !!data.clipPriv);
         if ('omni' in data) onOmni(data.omni);
-        if (typeof data.fs === 'boolean' && data.fs !== fullscreenHidden) {
-          fullscreenHidden = data.fs;
-          updateVisibility();
+        if (typeof data.fs === 'boolean') {
+          const isExplorer = typeof data.fgProc === 'string' && data.fgProc.toLowerCase() === 'explorer';
+          const effectiveFs = isExplorer ? false : data.fs;
+          if (effectiveFs !== fullscreenHidden) {
+            fullscreenHidden = effectiveFs;
+            updateVisibility();
+          }
         }
         send('media', data);
       } catch {}

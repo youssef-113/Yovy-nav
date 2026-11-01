@@ -216,17 +216,22 @@ window.addEventListener('pointermove', (e) => {
   if (!press || state.moving) return;
   if (Math.hypot(e.screenX - press.x, e.screenY - press.y) < 5) return; // drag threshold
   state.moving = true;
-  island.setPointerCapture(press.id);
+  try { island.setPointerCapture(press.id); } catch {}
   island.classList.add('moving');
   render();
   bridge.dragStart();
 });
-function endMove() {
+function endMove(e) {
+  // If Windows fired lostpointercapture during a window reposition, but mouse button is still held down, do NOT cancel the drag!
+  if (e && e.type === 'lostpointercapture' && (e.buttons & 1)) {
+    return;
+  }
   if (state.moving) {
     state.moving = false;
     state.hover = false;
     justMoved = true;
-    setTimeout(() => (justMoved = false), 50);
+    setTimeout(() => (justMoved = false), 60);
+    try { if (press && island.hasPointerCapture(press.id)) island.releasePointerCapture(press.id); } catch {}
     island.classList.remove('moving');
     bridge.dragEnd();
     render();
@@ -234,6 +239,7 @@ function endMove() {
   press = null;
 }
 window.addEventListener('pointerup', endMove);
+window.addEventListener('mouseup', endMove);
 island.addEventListener('lostpointercapture', endMove);
 
 // a plain click on the collapsed island opens it (also right after a move)
@@ -412,7 +418,22 @@ function tickClock() {
   const date = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   $('#x-clock').textContent = $('#i-time').textContent = time;
   $('#x-date').textContent = $('#i-date').textContent = date;
-  $('#v-time').textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const parts = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).formatToParts(d);
+  const hour = parts.find((p) => p.type === 'hour')?.value || '';
+  const minute = parts.find((p) => p.type === 'minute')?.value || '';
+  const sep = parts.find((p) => p.type === 'literal' && p.value.trim())?.value || ':';
+  const ap = parts.find((p) => p.type === 'dayPeriod')?.value || '';
+  const hm = hour && minute ? (hour + sep + minute) : time;
+
+  const vTime = $('#v-time');
+  if (vTime) {
+    if (ap) {
+      vTime.innerHTML = `<span class="v-time-hm">${hm}</span><span class="v-time-ap">${ap}</span>`;
+    } else {
+      vTime.textContent = hm;
+    }
+  }
   $('#v-day').textContent = d.toLocaleDateString([], { weekday: 'short', day: 'numeric' });
 }
 tickClock();

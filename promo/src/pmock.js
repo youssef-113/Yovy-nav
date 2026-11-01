@@ -11,7 +11,7 @@
     netToasts: true, smartClipboard: true, water: true, waterEvery: 60, waterGoal: 8, meetings: true, privacyDots: true,
     clipboardHistory: true, kbdToast: true, capsToast: true, screenshotToast: true, addrIsland: true,
   };
-  const general = { shown: true, vertical: true, startWithWindows: true, version: '1.3.2' };
+  const general = { shown: true, vertical: true, startWithWindows: true, version: '1.3.3' };
   const noop = () => {};
   window.prefs = {
     features: async () => ({ ...features }), general: async () => ({ ...general }),

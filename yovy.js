@@ -231,22 +231,81 @@ ipcMain.on('drag-start', () => {
 function followCursor() {
   if (!drag || !win || win.isDestroyed()) return;
   const p = screen.getCursorScreenPoint();
-  const b = screen.getDisplayNearestPoint(p).bounds;
-  if (prefs.vertical) {
-    // slides along the edge; crossing the middle of the screen moves it to the other side
-    prefs.side = p.x < b.x + b.width / 2 ? 'left' : 'right';
-    anchor = { x: p.x, y: p.y - drag.oy };
+  const display = screen.getDisplayNearestPoint(p);
+  const b = display.bounds;
+  const wa = display.workArea;
+
+  const SNAP_TOP_PX = 32;
+  const SNAP_EDGE_PX = 44;
+  const DETACH_EDGE_PX = 72;
+  const CENTER_SNAP_PX = 44;
+
+  let isVertical = prefs.vertical;
+  let side = prefs.side;
+
+  if (isVertical) {
+    // If pulled inward away from the screen edge, detach from vertical and become horizontal
+    const distFromEdge = side === 'left' ? (p.x - b.x) : (b.x + b.width - p.x);
+    if (distFromEdge > DETACH_EDGE_PX) {
+      isVertical = false;
+      prefs.vertical = false;
+      drag.ox = 0;
+      drag.oy = 16;
+    } else {
+      // Stay vertical on this edge or switch to opposite edge if crossed display center
+      side = p.x < b.x + b.width / 2 ? 'left' : 'right';
+      prefs.side = side;
+      anchor = { x: side === 'left' ? b.x : b.x + b.width, y: p.y - drag.oy };
+      prefs.docked = false;
+      layout();
+      return;
+    }
+  }
+
+  // Horizontal movement:
+  // Check if dragged near the left or right edge of this screen to snap into vertical
+  if (p.x - b.x < SNAP_EDGE_PX) {
+    prefs.vertical = true;
+    prefs.side = 'left';
+    prefs.docked = false;
+    drag.ox = 0;
+    drag.oy = 0;
+    anchor = { x: b.x, y: p.y };
+    layout();
+    return;
+  } else if (b.x + b.width - p.x < SNAP_EDGE_PX) {
+    prefs.vertical = true;
+    prefs.side = 'right';
+    prefs.docked = false;
+    drag.ox = 0;
+    drag.oy = 0;
+    anchor = { x: b.x + b.width, y: p.y };
     layout();
     return;
   }
+
+  // Free horizontal positioning
   const next = { x: p.x - drag.ox, y: p.y - drag.oy };
-  const docked = next.y - b.y < SNAP_PX;
-  if (docked) {
+
+  // Snap to top edge
+  const nearTop = next.y - b.y < SNAP_TOP_PX;
+  if (nearTop) {
     next.y = b.y;
+    prefs.docked = true;
     const center = b.x + b.width / 2;
     if (Math.abs(next.x - center) < CENTER_SNAP_PX) next.x = center;
+  } else {
+    prefs.docked = false;
+    // Snap to bottom edge (just above taskbar or screen bottom)
+    const bottomSnap = wa.y + wa.height - PILL_H;
+    if (Math.abs(next.y - bottomSnap) < SNAP_TOP_PX) {
+      next.y = bottomSnap;
+      const center = b.x + b.width / 2;
+      if (Math.abs(next.x - center) < CENTER_SNAP_PX) next.x = center;
+    }
   }
-  prefs.docked = docked;
+
+  prefs.vertical = false;
   anchor = next;
   layout();
 }
@@ -256,6 +315,7 @@ ipcMain.on('drag-end', () => {
   clearInterval(drag.timer);
   drag = null;
   savePosition();
+  notifyGeneral();
   captureBackdrop(); // refresh the glass for the new spot right away
   // don't pop the island open right after a move; re-arm when the cursor leaves
   suppressUntilLeave = true;
@@ -534,7 +594,11 @@ async function captureBackdrop() {
         height: Math.round(display.bounds.height * scale),
       },
     });
-    const src = sources.find((s) => s.display_id === String(display.id)) || sources[0];
+    const allDisplays = screen.getAllDisplays();
+    const displayIndex = allDisplays.findIndex((d) => d.id === display.id);
+    const src = sources.find((s) => s.display_id === String(display.id))
+      || (displayIndex >= 0 && sources[displayIndex])
+      || sources[0];
     if (!src || src.thumbnail.isEmpty()) return;
     const k = src.thumbnail.getSize().width / display.bounds.width;
     const b = win.getBounds();
@@ -974,9 +1038,14 @@ app.whenReady().then(() => {
   setInterval(pollCursor, 40);
   scheduleCapture(300);
   globalShortcut.register('CommandOrControl+Alt+I', () => send('toggle'));
-  screen.on('display-metrics-changed', () => layout());
-  screen.on('display-added', () => layout());
-  screen.on('display-removed', () => layout());
+  const onDisplayChange = () => {
+    layout();
+    savePosition();
+    scheduleCapture(100);
+  };
+  screen.on('display-metrics-changed', onDisplayChange);
+  screen.on('display-added', onDisplayChange);
+  screen.on('display-removed', onDisplayChange);
 });
 
 app.on('before-quit', () => {

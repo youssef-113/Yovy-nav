@@ -60,7 +60,7 @@ Turn on only what you need from one simple settings window. Vertical on the scre
 
 ## Install on Windows
 
-1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.2.exe`) from the [latest release](../../releases/latest).
+1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.3.exe`) from the [latest release](../../releases/latest).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not code-signed yet — choose **More info → Run anyway**.
 3. The island appears at the top of your screen. Press **Ctrl + Alt + I** to open it.
 

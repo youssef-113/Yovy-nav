@@ -1,6 +1,6 @@
 {
   "name": "yovy-nav",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "A living island navigation bar for your Windows desktop",
   "main": "yovy.js",
   "scripts": {

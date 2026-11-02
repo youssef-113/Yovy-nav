@@ -87,4 +87,9 @@ contextBridge.exposeInMainWorld('Yovy', {
     get: () => ipcRenderer.invoke('notes-get'),
     save: (data) => ipcRenderer.send('notes-save', data),
   },
+
+  tasks: {
+    get: () => ipcRenderer.invoke('tasks-get'),
+    save: (data) => ipcRenderer.send('tasks-save', data),
+  },
 });

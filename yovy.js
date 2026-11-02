@@ -719,6 +719,12 @@ ipcMain.on('shelf-open', (_e, p) => shelf.open(p));
 ipcMain.on('shelf-reveal', (_e, p) => shelf.reveal(p));
 ipcMain.on('shelf-drag', (e, p) => shelf.startDrag(e.sender, p));
 
+// --- tasks (saved in %AppData%\yovy-nav\tasks.json) ---
+ipcMain.handle('tasks-get', () => settings.load('tasks.json', []));
+ipcMain.on('tasks-save', (_e, data) => {
+  if (Array.isArray(data)) settings.save('tasks.json', data);
+});
+
 // --- notes (saved in %AppData%\yovy-nav\notes.json) ---
 ipcMain.handle('notes-get', () => settings.load('notes.json', { text: '', updated: 0 }));
 ipcMain.on('notes-save', (_e, data) => {

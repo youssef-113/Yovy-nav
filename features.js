@@ -7,12 +7,14 @@ const DEFAULTS = {
   tabApps: true,
   tabShelf: true,
   tabPrayer: true,
+  tabTasks: true,
   tabTimer: true,
   tabSystem: true,
   // idle pill slides
   slideClock: true,
   slideStats: true,
   slidePrayer: true,
+  slideTasks: true,
   // live activities
   mediaPill: true,
   mediaTitle: true,
@@ -24,6 +26,7 @@ const DEFAULTS = {
   hudBrightness: true,
   battery: true,
   prayerAlerts: true,
+  taskAlerts: true,
   asrHanafi: false, // Asr by the Hanafi shadow rule
   hijriAdjust: 0, // days added to the Hijri date (local moon sighting)
   // IDM Yovy

@@ -65,10 +65,9 @@
         <div class="info-slide task-slide" data-feat="slideTasks" hidden>
           <div class="side">
             <svg class="s i-task" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            <b id="i-task-title" class="i-strong" dir="auto"></b>
-            <span id="i-task-time" class="i-soft"></span>
+            <b id="i-task-title" class="i-strong i-task-title" dir="auto"></b>
           </div>
-          <div class="side"><span class="i-soft" lang="ar">بعد</span><b id="i-task-left" class="i-strong"></b></div>
+          <div class="side"><span class="i-soft" id="i-task-status" lang="ar">باقي</span><b id="i-task-left" class="i-strong"></b></div>
         </div>
       </div>
 
@@ -408,14 +407,14 @@
         </section>
 
         <!-- TASKS -->
-        <section id="v-tasks" class="view" role="tabpanel">
+        <section id="v-tasks" class="view" role="tabpanel" dir="rtl" lang="ar">
           <div class="task-view-wrap">
             <!-- Left Card: Next Reminder Showcase -->
             <div class="card task-summary-card">
               <div class="eyebrow" id="task-next-eyebrow">التذكير القادم</div>
               <div class="task-next-name" id="task-next-name">لا توجد مهام</div>
               <div class="task-count" id="task-next-count" dir="ltr">--:--:--</div>
-              <div class="task-at" id="task-next-time">حدد مهمة وتاريخاً</div>
+              <div class="task-at" id="task-next-time">حدد مهمة ووقت</div>
               <div class="task-meta">
                 <span id="task-stats-text">0 مهام نشطة</span>
                 <button id="task-alerts-btn" class="task-bell on" title="تنبيه عند موعد المهمة">
@@ -435,8 +434,7 @@
                   <span class="task-nav-badge" id="badge-active-count">0</span>
                 </button>
                 <button class="task-nav-tab" id="task-tab-finished-btn" type="button">
-                  <span class="water-ico">🎉</span>
-                  <span>جدول المكتملة</span>
+                  <span>المكتملة 🎉</span>
                   <span class="task-nav-badge done" id="badge-finished-count">0</span>
                 </button>
               </div>
@@ -446,21 +444,22 @@
                 <div class="card task-input-box">
                   <div class="task-input-row">
                     <input type="text" id="task-input-text" placeholder="اكتب اسم المهمة والتذكير..." autocomplete="off" maxlength="80">
-                    <input type="date" id="task-input-date" title="اختر تاريخ المهمة">
-                    <input type="time" id="task-input-time" title="اختر وقت المهمة">
+                    <div class="task-day-pills">
+                      <button type="button" class="task-day-pill active" id="task-day-today">اليوم</button>
+                      <button type="button" class="task-day-pill" id="task-day-tomorrow">غداً</button>
+                    </div>
+                    <input type="text" id="task-input-time" placeholder="14:30" maxlength="5" title="موعد المهمة بالساعات والدقائق">
                     <button id="task-add-btn" class="pill small primary" title="إضافة مهمة">
                       <svg class="s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
                       <span>إضافة</span>
                     </button>
                   </div>
                   <div class="task-presets-row">
-                    <span class="preset-label">تحديد سريع:</span>
-                    <button class="task-preset" id="preset-today" type="button">اليوم</button>
-                    <button class="task-preset" id="preset-tomorrow" type="button">غداً</button>
-                    <span class="preset-sep">·</span>
+                    <span class="preset-label">وقت سريع:</span>
                     <button class="task-preset" data-add-min="10" type="button">+10د</button>
                     <button class="task-preset" data-add-min="30" type="button">+30د</button>
                     <button class="task-preset" data-add-min="60" type="button">+1س</button>
+                    <button class="task-preset" data-add-min="180" type="button">+3س</button>
                   </div>
                 </div>
 
@@ -484,8 +483,8 @@
                     <thead>
                       <tr>
                         <th class="th-title">المهمة</th>
-                        <th class="th-due">الموعد المحدد</th>
-                        <th class="th-time">تاريخ الإنجاز</th>
+                        <th class="th-due">الموعد</th>
+                        <th class="th-time">الإنجاز</th>
                         <th class="th-status">الحالة</th>
                         <th class="th-actions">إجراء</th>
                       </tr>
@@ -493,12 +492,12 @@
                     <tbody id="task-done-tbody"></tbody>
                   </table>
                   <div class="task-empty-state" id="task-done-empty">
-                    <span>🎉 لا توجد مهام مكتملة بعد. عند الضغط على إنهاء مهمة ستضاف للجدول مع 🎉 و Well done!</span>
+                    <span>🎉 لا توجد مهام مكتملة بعد. عند الضغط على إنهاء مهمة ستضاف للجدول مع Well done! 🎉</span>
                   </div>
                 </div>
                 <div class="task-foot">
                   <span id="task-done-summary">0 مهمة مكتملة</span>
-                  <button id="task-clear-done" class="task-clear-btn" type="button">مسح سجل المكتملة</button>
+                  <button id="task-clear-done" class="task-clear-btn" type="button">مسح السجل</button>
                 </div>
               </div>
 

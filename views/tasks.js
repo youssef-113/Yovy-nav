@@ -1,7 +1,8 @@
 // Tasks / Task Reminder tab:
-// - Active tasks list with date & time picker, quick presets, and organized groups.
+// - Simple, normal time input and today/tomorrow toggle (no native popups to prevent lag).
+// - Shows upcoming task and remaining time in the carousel (idle slide).
 // - Reminders persist until the task is clicked finish.
-// - Finished tasks table with "Well done 🎉" water emoji celebration and undo/delete actions.
+// - Finished tasks table with "Well done 🎉" celebration.
 (() => {
   const view = $('#v-tasks');
   if (!view) return;
@@ -16,11 +17,10 @@
 
   // Input elements
   const inputEl = $('#task-input-text');
-  const dateEl = $('#task-input-date');
   const timeEl = $('#task-input-time');
   const addBtn = $('#task-add-btn');
-  const presetTodayBtn = $('#preset-today');
-  const presetTomorrowBtn = $('#preset-tomorrow');
+  const dayTodayBtn = $('#task-day-today');
+  const dayTomorrowBtn = $('#task-day-tomorrow');
 
   // Active list elements
   const listEl = $('#task-list');
@@ -42,10 +42,10 @@
   const bell = $('#task-alerts-btn');
   const badgeEl = $('#tasks-badge');
 
-  // Idle slide elements
+  // Carousel slide elements
   const slideEl = $('.task-slide');
   const slideTitle = $('#i-task-title');
-  const slideTime = $('#i-task-time');
+  const slideStatus = $('#i-task-status');
   const slideLeft = $('#i-task-left');
 
   // Vertical pill elements
@@ -54,7 +54,8 @@
   const vTaskLeft = $('#v-task-left');
 
   let tasks = [];
-  const RE_REMIND_MS = 2.5 * 60000; // Repeat reminder for overdue tasks every 2.5 min until finished
+  let selectedDayOffset = 0; // 0 = today, 1 = tomorrow
+  const RE_REMIND_MS = 2.5 * 60000;
 
   // Alerts switch (shared with features.taskAlerts)
   let alertsOn = true;
@@ -75,17 +76,6 @@
 
   const pad = (n) => String(n).padStart(2, '0');
 
-  function getTodayDateStr() {
-    const d = new Date();
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  }
-
-  function getTomorrowDateStr() {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  }
-
   const left = (ms) => {
     const s = Math.max(0, Math.floor(ms / 1000));
     const h = Math.floor(s / 3600);
@@ -99,12 +89,14 @@
   };
 
   function isToday(ts) {
+    if (!Number.isFinite(ts)) return false;
     const d = new Date(ts);
     const now = new Date();
     return d.toDateString() === now.toDateString();
   }
 
   function isTomorrow(ts) {
+    if (!Number.isFinite(ts)) return false;
     const d = new Date(ts);
     const tom = new Date();
     tom.setDate(tom.getDate() + 1);
@@ -112,65 +104,80 @@
   }
 
   function formatDue(ts) {
-    if (!ts) return '—';
-    const d = new Date(ts);
-    const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    if (isToday(ts)) return `اليوم ${timeStr}`;
-    if (isTomorrow(ts)) return `غداً ${timeStr}`;
-    return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeStr}`;
+    if (!Number.isFinite(ts) || ts <= 0) return '—';
+    try {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return '—';
+      const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (isToday(ts)) return `اليوم ${timeStr}`;
+      if (isTomorrow(ts)) return `غداً ${timeStr}`;
+      return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeStr}`;
+    } catch {
+      return '—';
+    }
   }
 
   function formatDateTime(ts) {
-    if (!ts) return '—';
-    const d = new Date(ts);
-    return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-  }
-
-  // Set default date & time inputs
-  function resetInputs(addMin = 15) {
-    if (dateEl) dateEl.value = getTodayDateStr();
-    if (timeEl) {
-      const d = new Date(Date.now() + addMin * 60000);
-      timeEl.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    if (!Number.isFinite(ts) || ts <= 0) return '—';
+    try {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return '—';
+      return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    } catch {
+      return '—';
     }
   }
-  resetInputs(15);
 
-  // Quick presets handlers
-  presetTodayBtn?.addEventListener('click', () => {
-    if (dateEl) dateEl.value = getTodayDateStr();
-  });
-  presetTomorrowBtn?.addEventListener('click', () => {
-    if (dateEl) dateEl.value = getTomorrowDateStr();
+  // Pre-fill time input (default to +15 min)
+  function setDefaultTime(addMin = 15) {
+    if (!timeEl) return;
+    const d = new Date(Date.now() + addMin * 60000);
+    timeEl.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  setDefaultTime(15);
+
+  // Day toggle buttons (Today / Tomorrow)
+  dayTodayBtn?.addEventListener('click', () => {
+    selectedDayOffset = 0;
+    dayTodayBtn.classList.add('active');
+    dayTomorrowBtn?.classList.remove('active');
   });
 
+  dayTomorrowBtn?.addEventListener('click', () => {
+    selectedDayOffset = 1;
+    dayTomorrowBtn.classList.add('active');
+    dayTodayBtn?.classList.remove('active');
+  });
+
+  // Preset buttons (+10m, +30m, +1h, +3h)
   $$('.task-preset[data-add-min]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const mins = Number(btn.dataset.addMin || 15);
-      const d = new Date(Date.now() + mins * 60000);
-      if (dateEl) {
-        dateEl.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-      }
-      if (timeEl) {
-        timeEl.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      }
+      selectedDayOffset = 0;
+      dayTodayBtn?.classList.add('active');
+      dayTomorrowBtn?.classList.remove('active');
+      setDefaultTime(mins);
     });
   });
 
   // Switch between Active Tasks view and Finished Tasks Table
   function switchTab(showFinished) {
-    tabActiveBtn.classList.toggle('active', !showFinished);
-    tabFinishedBtn.classList.toggle('active', showFinished);
-    paneActive.classList.toggle('active', !showFinished);
-    paneActive.hidden = showFinished;
-    paneFinished.classList.toggle('active', showFinished);
-    paneFinished.hidden = !showFinished;
+    tabActiveBtn?.classList.toggle('active', !showFinished);
+    tabFinishedBtn?.classList.toggle('active', showFinished);
+    if (paneActive) {
+      paneActive.classList.toggle('active', !showFinished);
+      paneActive.hidden = showFinished;
+    }
+    if (paneFinished) {
+      paneFinished.classList.toggle('active', showFinished);
+      paneFinished.hidden = !showFinished;
+    }
   }
   tabActiveBtn?.addEventListener('click', () => switchTab(false));
   tabFinishedBtn?.addEventListener('click', () => switchTab(true));
 
   // Focus tracking for island overlay
-  [inputEl, dateEl, timeEl].forEach((el) => {
+  [inputEl, timeEl].forEach((el) => {
     if (!el) return;
     el.addEventListener('pointerdown', () => {
       bridge.focusInput(true);
@@ -190,13 +197,18 @@
 
   async function loadTasks() {
     try {
-      const fromBridge = await bridge.tasks?.get();
-      if (Array.isArray(fromBridge) && fromBridge.length) {
-        tasks = fromBridge;
-      } else {
+      let loaded = null;
+      try {
+        loaded = await bridge.tasks?.get();
+      } catch {}
+      if (!Array.isArray(loaded) || !loaded.length) {
         const stored = localStorage.getItem('yovy-tasks');
-        if (stored) tasks = JSON.parse(stored);
+        if (stored) loaded = JSON.parse(stored);
       }
+      // Sanitize: filter out any corrupted or NaN tasks
+      tasks = (Array.isArray(loaded) ? loaded : []).filter((t) =>
+        t && typeof t === 'object' && t.id && typeof t.text === 'string' && Number.isFinite(t.dueTime) && t.dueTime > 0
+      );
     } catch {
       tasks = [];
     }
@@ -204,25 +216,43 @@
     tick();
   }
 
-  function parseTargetDateTime(dateStr, timeStr) {
-    if (!dateStr) dateStr = getTodayDateStr();
-    if (!timeStr) {
-      const now = new Date(Date.now() + 15 * 60000);
-      timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  // Parse time input string cleanly without throwing or NaN
+  function parseTimeInput(str) {
+    if (!str) return null;
+    const clean = String(str).trim();
+    if (!clean) return null;
+    const parts = clean.split(':').map((p) => parseInt(p, 10));
+    let h = parts[0];
+    let m = parts.length > 1 ? parts[1] : 0;
+    if (!Number.isFinite(h) || h < 0 || h > 23) h = new Date().getHours();
+    if (!Number.isFinite(m) || m < 0 || m > 59) m = 0;
+    return { h, m };
+  }
+
+  function calculateDueTimestamp(dayOffset, timeStr) {
+    const parsed = parseTimeInput(timeStr);
+    const d = new Date();
+    d.setDate(d.getDate() + dayOffset);
+    if (parsed) {
+      d.setHours(parsed.h, parsed.m, 0, 0);
+      // If today and time already passed, automatically push to tomorrow
+      if (dayOffset === 0 && d.getTime() <= Date.now()) {
+        d.setDate(d.getDate() + 1);
+      }
+    } else {
+      d.setTime(Date.now() + 15 * 60000);
     }
-    const [y, mo, d] = dateStr.split('-').map(Number);
-    const [h, mi] = timeStr.split(':').map(Number);
-    const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
-    return dt.getTime();
+    const val = d.getTime();
+    return Number.isFinite(val) ? val : Date.now() + 15 * 60000;
   }
 
   function addTask() {
-    const text = (inputEl.value || '').trim();
+    const text = (inputEl?.value || '').trim();
     if (!text) {
-      inputEl.focus();
+      inputEl?.focus();
       return;
     }
-    const dueTime = parseTargetDateTime(dateEl.value, timeEl.value);
+    const dueTime = calculateDueTimestamp(selectedDayOffset, timeEl?.value);
     const newTask = {
       id: String(Date.now() + Math.random().toString(36).slice(2, 6)),
       text,
@@ -235,8 +265,11 @@
     };
     tasks.unshift(newTask);
     saveTasks();
-    inputEl.value = '';
-    resetInputs(15);
+    if (inputEl) inputEl.value = '';
+    selectedDayOffset = 0;
+    dayTodayBtn?.classList.add('active');
+    dayTomorrowBtn?.classList.remove('active');
+    setDefaultTime(15);
     render();
     tick();
   }
@@ -249,25 +282,25 @@
     }
   });
 
-  // Finish a task action with the water emoji celebration!
+  // Finish a task action with celebration
   function finishTask(task) {
     task.completed = true;
     task.finishedAt = Date.now();
     saveTasks();
 
-    // 1. Play joyful completion tones
+    // 1. Play completion chime
     playTones([[0, 659], [0.15, 880], [0.35, 1046]], { peak: 0.22, attack: 0.02, decay: 0.8 });
 
-    // 2. Celebrate with water color sparkles
+    // 2. Sparkles animation
     if (feat('celebrate')) {
       celebrate(['#ffd479', '#ff9f0a', '#30d158', '#8ab4ff', '#ff6b9d']);
     }
 
-    // 3. Island Toast with the water emoji & "Well done 🎉"
+    // 3. Toast with celebration
     showToast('done', 'Well done! 🎉 أحسنت!', esc(task.text), 0, 4000);
     note('🎉', `Well done! Finished task: ${task.text}`);
 
-    // 4. Trigger the Drop character scene if scene system is enabled
+    // 4. Character scene
     window.playScene?.({
       who: 'Yovy', props: [], arms: 'fold', tone: 'gold', badge: '🎉 Well Done!',
       title: 'Well done! 🎉', sub: `أنجزت المهمة: <b>${esc(task.text)}</b>`, ms: 4000,
@@ -277,7 +310,7 @@
     tick();
   }
 
-  // Restore a completed task back to active
+  // Restore task
   function restoreTask(task) {
     task.completed = false;
     task.finishedAt = 0;
@@ -289,7 +322,7 @@
     tick();
   }
 
-  // Delete a task permanently
+  // Delete task
   function deleteTask(id) {
     tasks = tasks.filter((t) => t.id !== id);
     saveTasks();
@@ -304,30 +337,28 @@
     tick();
   });
 
-  // Render both Active tasks list and Finished tasks table
   function render() {
     renderActiveList();
     renderFinishedTable();
   }
 
   function renderActiveList() {
+    if (!listEl) return;
     listEl.innerHTML = '';
     const now = Date.now();
-    const active = tasks.filter((t) => !t.completed);
+    const active = tasks.filter((t) => !t.completed && Number.isFinite(t.dueTime));
 
-    badgeActiveCount.textContent = active.length;
-    statsEl.textContent = `${active.length} مهام نشطة`;
-    pendingSummaryEl.textContent = `${active.length} ${active.length === 1 ? 'مهمة متبقية' : 'مهام متبقية'}`;
+    if (badgeActiveCount) badgeActiveCount.textContent = active.length;
+    if (statsEl) statsEl.textContent = `${active.length} مهام نشطة`;
+    if (pendingSummaryEl) {
+      pendingSummaryEl.textContent = `${active.length} ${active.length === 1 ? 'مهمة متبقية' : 'مهام متبقية'}`;
+    }
     badgeEl?.classList.toggle('on', active.length > 0);
-    emptyActiveEl.hidden = active.length > 0;
+    if (emptyActiveEl) emptyActiveEl.hidden = active.length > 0;
 
     if (!active.length) return;
 
-    // Arrangement / grouping for active tasks:
-    // 1. Overdue: dueTime <= now (sorted oldest to newest)
-    // 2. Today: isToday(dueTime) && dueTime > now (sorted by time)
-    // 3. Tomorrow: isTomorrow(dueTime) (sorted by time)
-    // 4. Later: dueTime > tomorrow (sorted by date & time)
+    // Grouping
     const overdue = active.filter((t) => t.dueTime <= now).sort((a, b) => a.dueTime - b.dueTime);
     const today = active.filter((t) => isToday(t.dueTime) && t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime);
     const tomorrow = active.filter((t) => isTomorrow(t.dueTime)).sort((a, b) => a.dueTime - b.dueTime);
@@ -374,8 +405,7 @@
           <div class="task-trailing">
             ${badgeHtml}
             <button class="task-finish-btn" title="إنهاء المهمة وإضافتها للجدول">
-              <span>إنهاء</span>
-              <span class="water-drop-icon">🎉</span>
+              <span>إنهاء 🎉</span>
             </button>
             <button class="task-del" title="حذف المهمة">
               <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -393,12 +423,13 @@
   }
 
   function renderFinishedTable() {
+    if (!doneTbody) return;
     doneTbody.innerHTML = '';
     const finished = tasks.filter((t) => t.completed).sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
-    badgeFinishedCount.textContent = finished.length;
-    doneSummaryEl.textContent = `${finished.length} مهمة مكتملة`;
-    emptyDoneEl.hidden = finished.length > 0;
+    if (badgeFinishedCount) badgeFinishedCount.textContent = finished.length;
+    if (doneSummaryEl) doneSummaryEl.textContent = `${finished.length} مهمة مكتملة`;
+    if (emptyDoneEl) emptyDoneEl.hidden = finished.length > 0;
 
     for (const t of finished) {
       const tr = document.createElement('tr');
@@ -409,7 +440,7 @@
         <td class="td-time">${formatDateTime(t.finishedAt)}</td>
         <td class="td-status"><span class="badge-done">Well done 🎉</span></td>
         <td class="td-actions">
-          <button class="btn-action-restore" title="استعادة إلى قائمة المهام النشطة">↺</button>
+          <button class="btn-action-restore" title="استعادة إلى قائمة المهام">↺</button>
           <button class="btn-action-del" title="حذف نهائي">✕</button>
         </td>
       `;
@@ -421,103 +452,120 @@
     }
   }
 
-  // Periodic tick function
+  // Periodic tick (wrapped in try/catch to ensure zero crashes)
   function tick() {
-    const now = Date.now();
-    const active = tasks.filter((t) => !t.completed);
+    try {
+      const now = Date.now();
+      const active = tasks.filter((t) => !t.completed && Number.isFinite(t.dueTime));
 
-    // Timeout & Reminders handling
-    for (const t of active) {
-      if (now >= t.dueTime) {
-        // Task has timed out / reached reminder time!
-        const needsInitial = !t.fired;
-        const needsRepeat = !needsInitial && (now - (t.lastRemind || 0) >= RE_REMIND_MS);
+      // Reminders & Overdue check
+      for (const t of active) {
+        if (now >= t.dueTime) {
+          const needsInitial = !t.fired;
+          const needsRepeat = !needsInitial && (now - (t.lastRemind || 0) >= RE_REMIND_MS);
 
-        if (needsInitial || needsRepeat) {
-          t.fired = true;
-          t.lastRemind = now;
-          saveTasks();
+          if (needsInitial || needsRepeat) {
+            t.fired = true;
+            t.lastRemind = now;
+            saveTasks();
 
-          if (alertsOn && feat('taskAlerts')) {
-            playTones([[0, 523], [0.15, 659], [0.3, 784], [0.45, 1046]], { peak: 0.22, attack: 0.02, decay: 1.2 });
-            island.classList.add('task-alert');
-            showToast('task-alert', t.text, needsInitial ? 'حان الموعد!' : 'تذكير: لم تنتهِ بعد', 0, 8000);
-            setTimeout(() => island.classList.remove('task-alert'), 8200);
-            note('⏰', `تذكير بمهمة: ${t.text}`);
+            if (alertsOn && feat('taskAlerts')) {
+              playTones([[0, 523], [0.15, 659], [0.3, 784], [0.45, 1046]], { peak: 0.22, attack: 0.02, decay: 1.2 });
+              island.classList.add('task-alert');
+              showToast('task-alert', t.text, needsInitial ? 'حان الموعد!' : 'تذكير بمهمة مستحقة', 0, 8000);
+              setTimeout(() => island.classList.remove('task-alert'), 8200);
+              note('⏰', `تذكير بمهمة: ${t.text}`);
+            }
+            renderActiveList();
           }
-          renderActiveList();
         }
       }
-    }
 
-    // Showcase Card on the Left
-    // Priority: oldest overdue task first, or earliest upcoming task
-    const overdue = active.filter((t) => t.dueTime <= now).sort((a, b) => a.dueTime - b.dueTime);
-    const upcoming = active.filter((t) => t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime);
+      // Overdue & Upcoming sorting
+      const overdue = active.filter((t) => t.dueTime <= now).sort((a, b) => a.dueTime - b.dueTime);
+      const upcoming = active.filter((t) => t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime);
 
-    if (overdue.length > 0) {
-      const topOverdue = overdue[0];
-      eyebrowEl.textContent = overdue.length > 1 ? `⚠️ متأخرة (${overdue.length} مهام)` : '⚠️ حان الموعد!';
-      eyebrowEl.classList.add('alert');
-      nextNameEl.textContent = topOverdue.text;
-      nextCountEl.textContent = 'اضغط إنهاء 🎉';
-      nextCountEl.classList.add('alert');
-      nextTimeEl.textContent = `الموعد: ${formatDue(topOverdue.dueTime)}`;
+      // Showcase card on the left
+      if (overdue.length > 0) {
+        const topOverdue = overdue[0];
+        if (eyebrowEl) {
+          eyebrowEl.textContent = overdue.length > 1 ? `⚠️ متأخرة (${overdue.length} مهام)` : '⚠️ حان الموعد!';
+          eyebrowEl.classList.add('alert');
+        }
+        if (nextNameEl) nextNameEl.textContent = topOverdue.text || 'مهمة';
+        if (nextCountEl) {
+          nextCountEl.textContent = 'اضغط إنهاء 🎉';
+          nextCountEl.classList.add('alert');
+        }
+        if (nextTimeEl) nextTimeEl.textContent = `الموعد: ${formatDue(topOverdue.dueTime)}`;
+      } else if (upcoming.length > 0) {
+        const nextUp = upcoming[0];
+        if (eyebrowEl) {
+          eyebrowEl.textContent = 'التذكير القادم';
+          eyebrowEl.classList.remove('alert');
+        }
+        if (nextNameEl) nextNameEl.textContent = nextUp.text || 'مهمة';
+        if (nextCountEl) {
+          nextCountEl.textContent = left(nextUp.dueTime - now);
+          nextCountEl.classList.remove('alert');
+        }
+        if (nextTimeEl) nextTimeEl.textContent = formatDue(nextUp.dueTime);
+      } else {
+        if (eyebrowEl) {
+          eyebrowEl.textContent = 'التذكير القادم';
+          eyebrowEl.classList.remove('alert');
+        }
+        if (nextNameEl) nextNameEl.textContent = 'لا توجد مهام نشطة';
+        if (nextCountEl) {
+          nextCountEl.textContent = '--:--:--';
+          nextCountEl.classList.remove('alert');
+        }
+        if (nextTimeEl) nextTimeEl.textContent = 'أضف مهمة وحدد موعدها';
+      }
 
-      // Slide & vertical item
+      // Carousel Slide ("corssol") - smoothly shows the task and how much is left
       const onSlide = feat('slideTasks');
-      slideEl.hidden = !onSlide;
-      if (onSlide) {
-        slideTitle.textContent = topOverdue.text;
-        slideTime.textContent = new Date(topOverdue.dueTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        slideLeft.textContent = 'حان الموعد! 🎉';
-      }
-      if (vTaskItem) {
-        vTaskItem.hidden = !onSlide;
-        if (onSlide) {
-          vTaskName.textContent = topOverdue.text;
-          vTaskLeft.textContent = 'متأخر';
-        }
-      }
-    } else if (upcoming.length > 0) {
-      const nextUp = upcoming[0];
-      eyebrowEl.textContent = 'التذكير القادم';
-      eyebrowEl.classList.remove('alert');
-      nextNameEl.textContent = nextUp.text;
-      nextCountEl.textContent = left(nextUp.dueTime - now);
-      nextCountEl.classList.remove('alert');
-      nextTimeEl.textContent = formatDue(nextUp.dueTime);
+      if (slideEl) {
+        if (active.length > 0 && onSlide) {
+          slideEl.hidden = false;
+          const multi = active.length > 1 ? ` (${active.length})` : '';
 
-      const onSlide = feat('slideTasks');
-      slideEl.hidden = !onSlide;
-      if (onSlide) {
-        slideTitle.textContent = nextUp.text;
-        slideTime.textContent = new Date(nextUp.dueTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        slideLeft.textContent = left(nextUp.dueTime - now);
-      }
-      if (vTaskItem) {
-        vTaskItem.hidden = !onSlide;
-        if (onSlide) {
-          vTaskName.textContent = nextUp.text;
-          vTaskLeft.textContent = shortLeft(nextUp.dueTime - now);
+          if (overdue.length > 0) {
+            const top = overdue[0];
+            if (slideTitle) slideTitle.textContent = top.text || 'مهمة';
+            if (slideStatus) slideStatus.textContent = 'متأخر';
+            if (slideLeft) slideLeft.textContent = `حان الموعد!${multi}`;
+          } else if (upcoming.length > 0) {
+            const next = upcoming[0];
+            if (slideTitle) slideTitle.textContent = next.text || 'مهمة';
+            if (slideStatus) slideStatus.textContent = 'باقي';
+            if (slideLeft) slideLeft.textContent = `${shortLeft(next.dueTime - now)}${multi}`;
+          }
+        } else {
+          slideEl.hidden = true;
         }
       }
-    } else {
-      eyebrowEl.textContent = 'التذكير القادم';
-      eyebrowEl.classList.remove('alert');
-      nextNameEl.textContent = 'لا توجد مهام نشطة';
-      nextCountEl.textContent = '--:--:--';
-      nextCountEl.classList.remove('alert');
-      nextTimeEl.textContent = 'أضف مهمة وحدد موعدها';
-      slideEl.hidden = true;
-      if (vTaskItem) vTaskItem.hidden = true;
+
+      // Vertical pill item
+      if (vTaskItem) {
+        if (active.length > 0 && onSlide) {
+          vTaskItem.hidden = false;
+          const top = overdue[0] || upcoming[0];
+          if (vTaskName) vTaskName.textContent = top ? top.text : '';
+          if (vTaskLeft) vTaskLeft.textContent = overdue.length > 0 ? 'متأخر' : shortLeft(top.dueTime - now);
+        } else {
+          vTaskItem.hidden = true;
+        }
+      }
+    } catch (err) {
+      console.error('[tasks-tick-safe]', err);
     }
   }
 
   // Morning brief / companion hook
   window.nextTaskText = () => {
     const now = Date.now();
-    const up = tasks.filter((t) => !t.completed && t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime)[0];
+    const up = tasks.filter((t) => !t.completed && Number.isFinite(t.dueTime) && t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime)[0];
     return up ? `${up.text} (${formatDue(up.dueTime)})` : '';
   };
 

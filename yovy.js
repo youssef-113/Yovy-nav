@@ -30,8 +30,8 @@ const updater = require('./updater');
 // the per-app commands keep targeting the browser tab rather than the mini player.
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
 
-const WIN_W = 640;
-const WIN_H = 320;
+const WIN_W = 680;
+const WIN_H = 360;
 const HOVER_INTENT_MS = 280;
 
 let win = null;

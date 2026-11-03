@@ -310,7 +310,7 @@
   });
 
   // Ensure mouse wheel and touch scrolling work smoothly inside task list and done table
-  [listEl?.parentElement, doneTbody?.closest('.task-table-container')].forEach((container) => {
+  [listEl?.parentElement, doneTbody?.closest('.task-table-container'), listEl].forEach((container) => {
     if (!container) return;
     container.addEventListener('wheel', (e) => {
       e.stopPropagation();

@@ -263,7 +263,7 @@ island.addEventListener('click', (e) => {
 // on it, then pushed back inside the window, so near the bottom or the sides the island
 // opens upward / inward instead of off screen. Sizes mirror style.css.
 const DIMS = {
-  idle: [236, 32], compact: [300, 32], toast: [340, 34], peek: [400, 78], expanded: [548, 232],
+  idle: [236, 32], compact: [300, 32], toast: [340, 34], peek: [400, 78], expanded: [600, 275],
 };
 const COMPACT_WIDE = 380; // compact with a title (media / download)
 const VDIMS = { ...DIMS, idle: [44, 244], compact: [44, 136], toast: [44, 168] };

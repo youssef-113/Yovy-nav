@@ -442,8 +442,14 @@
               <!-- Active Tasks View Container -->
               <div class="task-pane active" id="task-pane-active">
                 <div class="card task-input-box">
-                  <div class="task-input-row">
-                    <input type="text" id="task-input-text" placeholder="Enter task name..." autocomplete="off" maxlength="80">
+                  <div class="task-input-primary">
+                    <input type="text" id="task-input-text" placeholder="What do you want to get done?" autocomplete="off" maxlength="120">
+                    <button id="task-add-btn" class="pill small primary" title="Add task">
+                      <svg class="s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                      <span>Add</span>
+                    </button>
+                  </div>
+                  <div class="task-input-controls">
                     <div class="task-day-pills">
                       <button type="button" class="task-day-pill active" id="task-day-today">Today</button>
                       <button type="button" class="task-day-pill" id="task-day-tomorrow">Tomorrow</button>
@@ -465,28 +471,23 @@
                     </div>
                     <select id="task-input-remind" title="Reminder frequency">
                       <option value="default">Auto</option>
-                      <option value="1">Every 1m</option>
-                      <option value="2">Every 2m</option>
-                      <option value="3">Every 3m</option>
-                      <option value="5">Every 5m</option>
-                      <option value="10">Every 10m</option>
-                      <option value="15">Every 15m</option>
-                      <option value="20">Every 20m</option>
-                      <option value="30">Every 30m</option>
-                      <option value="45">Every 45m</option>
-                      <option value="60">Every 1h</option>
+                      <option value="1">1m</option>
+                      <option value="2">2m</option>
+                      <option value="3">3m</option>
+                      <option value="5">5m</option>
+                      <option value="10">10m</option>
+                      <option value="15">15m</option>
+                      <option value="20">20m</option>
+                      <option value="30">30m</option>
+                      <option value="45">45m</option>
+                      <option value="60">1h</option>
                     </select>
-                    <button id="task-add-btn" class="pill small primary" title="Add task">
-                      <svg class="s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                      <span>Add</span>
-                    </button>
-                  </div>
-                  <div class="task-presets-row">
-                    <span class="preset-label">Quick time:</span>
-                    <button class="task-preset" data-add-min="10" type="button">+10m</button>
-                    <button class="task-preset" data-add-min="30" type="button">+30m</button>
-                    <button class="task-preset" data-add-min="60" type="button">+1h</button>
-                    <button class="task-preset" data-add-min="180" type="button">+3h</button>
+                    <div class="task-presets-inline">
+                      <button class="task-preset" data-add-min="10" type="button">+10m</button>
+                      <button class="task-preset" data-add-min="30" type="button">+30m</button>
+                      <button class="task-preset" data-add-min="60" type="button">+1h</button>
+                      <button class="task-preset" data-add-min="180" type="button">+3h</button>
+                    </div>
                   </div>
                 </div>
 

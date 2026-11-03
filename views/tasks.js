@@ -22,6 +22,14 @@
   const addBtn = $('#task-add-btn');
   const dayTodayBtn = $('#task-day-today');
   const dayTomorrowBtn = $('#task-day-tomorrow');
+  const ampmEl = $('#task-input-ampm');
+  const dayPickBtn = $('#task-day-pick-btn');
+  const dayPickLabel = $('#task-day-pick-label');
+  const dateInput = $('#task-date-input');
+
+  let tasks = [];
+  let selectedDayMode = 'today';
+  let selectedCustomDate = '';
 
   // Active list elements
   const listEl = $('#task-list');
@@ -54,9 +62,7 @@
   const vTaskName = $('#v-task-name');
   const vTaskLeft = $('#v-task-left');
 
-  let tasks = [];
-  let selectedDayOffset = 0; // 0 = today, 1 = tomorrow
-  
+    
   // Get reminder interval from features (default 5 minutes)
   function getRemindInterval() {
     const minutes = state.features.taskRemindEvery || 5;

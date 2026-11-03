@@ -67,7 +67,7 @@
             <svg class="s i-task" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             <b id="i-task-title" class="i-strong i-task-title" dir="auto"></b>
           </div>
-          <div class="side"><span class="i-soft" id="i-task-status" lang="ar">باقي</span><b id="i-task-left" class="i-strong"></b></div>
+          <div class="side"><span class="i-soft" id="i-task-status">Left</span><b id="i-task-left" class="i-strong"></b></div>
         </div>
       </div>
 
@@ -407,19 +407,19 @@
         </section>
 
         <!-- TASKS -->
-        <section id="v-tasks" class="view" role="tabpanel" dir="rtl" lang="ar">
+        <section id="v-tasks" class="view" role="tabpanel" dir="ltr" lang="en">
           <div class="task-view-wrap">
             <!-- Left Card: Next Reminder Showcase -->
             <div class="card task-summary-card">
-              <div class="eyebrow" id="task-next-eyebrow">التذكير القادم</div>
-              <div class="task-next-name" id="task-next-name">لا توجد مهام</div>
-              <div class="task-count" id="task-next-count" dir="ltr">--:--:--</div>
-              <div class="task-at" id="task-next-time">حدد مهمة ووقت</div>
+              <div class="eyebrow" id="task-next-eyebrow">Next Reminder</div>
+              <div class="task-next-name" id="task-next-name">No tasks</div>
+              <div class="task-count" id="task-next-count">--:--:--</div>
+              <div class="task-at" id="task-next-time">Set task &amp; time</div>
               <div class="task-meta">
-                <span id="task-stats-text">0 مهام نشطة</span>
-                <button id="task-alerts-btn" class="task-bell on" title="تنبيه عند موعد المهمة">
+                <span id="task-stats-text">0 active tasks</span>
+                <button id="task-alerts-btn" class="task-bell on" title="Alerts when due">
                   <svg class="s" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path class="off-line" d="M3 3l18 18"/></svg>
-                  <span>التنبيهات</span>
+                  <span>Alerts</span>
                 </button>
               </div>
             </div>
@@ -430,11 +430,11 @@
               <div class="task-view-nav">
                 <button class="task-nav-tab active" id="task-tab-active-btn" type="button">
                   <svg class="s" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                  <span>ِActive tasks</span>
+                  <span>Active Tasks</span>
                   <span class="task-nav-badge" id="badge-active-count">0</span>
                 </button>
                 <button class="task-nav-tab" id="task-tab-finished-btn" type="button">
-                  <span>Completed Tasks</span>
+                  <span>Completed Tasks 🎉</span>
                   <span class="task-nav-badge done" id="badge-finished-count">0</span>
                 </button>
               </div>
@@ -494,12 +494,12 @@
                   <div class="task-list" id="task-list"></div>
                   <div class="task-empty-state" id="task-empty">
                     <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    <span>لا توجد مهام نشطة حالياً. أضف مهمة وحدد موعدها بالأعلى!</span>
+                    <span>No active tasks yet. Add a task above to schedule a reminder!</span>
                   </div>
                 </div>
 
                 <div class="task-foot">
-                  <span id="task-pending-summary">0 مهام متبقية</span>
+                  <span id="task-pending-summary">0 tasks remaining</span>
                 </div>
               </div>
 
@@ -509,22 +509,22 @@
                   <table class="task-done-table">
                     <thead>
                       <tr>
-                        <th class="th-title">المهمة</th>
-                        <th class="th-due">الموعد</th>
-                        <th class="th-time">الإنجاز</th>
-                        <th class="th-status">الحالة</th>
-                        <th class="th-actions">إجراء</th>
+                        <th class="th-title">Task</th>
+                        <th class="th-due">Due Date</th>
+                        <th class="th-time">Completed At</th>
+                        <th class="th-status">Status</th>
+                        <th class="th-actions">Action</th>
                       </tr>
                     </thead>
                     <tbody id="task-done-tbody"></tbody>
                   </table>
                   <div class="task-empty-state" id="task-done-empty">
-                    <span>🎉 لا توجد مهام مكتملة بعد. عند الضغط على إنهاء مهمة ستضاف للجدول مع Well done! 🎉</span>
+                    <span>🎉 No completed tasks yet. Finish a task to see it celebrated here!</span>
                   </div>
                 </div>
                 <div class="task-foot">
-                  <span id="task-done-summary">0 مهمة مكتملة</span>
-                  <button id="task-clear-done" class="task-clear-btn" type="button">مسح السجل</button>
+                  <span id="task-done-summary">0 completed tasks</span>
+                  <button id="task-clear-done" class="task-clear-btn" type="button">Clear history</button>
                 </div>
               </div>
 

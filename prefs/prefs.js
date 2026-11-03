@@ -279,22 +279,166 @@ api.general().then(showGeneral);
 let tasks = [];
 const pad = (n) => String(n).padStart(2, '0');
 
-// Populate time dropdown with 12-hour format options
-function populateTimeDropdown() {
-  const select = $('#prefs-task-time');
-  if (!select) return;
-  select.innerHTML = '<option value="">--:--</option>';
-  for (let hour = 0; hour < 24; hour++) {
-    for (let min = 0; min < 60; min += 30) {
-      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const value = `${displayHour}:${pad(min)} ${ampm}`;
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = value;
-      select.appendChild(option);
+// --- Task Management (12-Hour Time & Day Selection) ---
+
+let selectedDayMode = 'today'; // 'today', 'tomorrow', 'custom'
+let selectedCustomDate = '';    // 'YYYY-MM-DD'
+
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function getTomorrowStr() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// Format 12-hour time and validate strictly (Hours: 1-12, Minutes: 00-59)
+function validate12hTime(raw, currentAmpm = 'AM') {
+  let str = String(raw || '').trim();
+  let ampm = currentAmpm === 'PM' ? 'PM' : 'AM';
+  
+  if (/pm$/i.test(str)) { ampm = 'PM'; str = str.replace(/pm$/i, '').trim(); }
+  else if (/am$/i.test(str)) { ampm = 'AM'; str = str.replace(/am$/i, '').trim(); }
+  
+  let h = 9, m = 30;
+  if (str.includes(':')) {
+    const parts = str.split(':');
+    h = parseInt(parts[0], 10);
+    m = parseInt(parts[1], 10);
+  } else if (/^\d{3,4}$/.test(str)) {
+    if (str.length === 3) {
+      h = parseInt(str.slice(0, 1), 10);
+      m = parseInt(str.slice(1), 10);
+    } else {
+      h = parseInt(str.slice(0, 2), 10);
+      m = parseInt(str.slice(2), 10);
     }
+  } else if (/^\d{1,2}$/.test(str)) {
+    h = parseInt(str, 10);
+    m = 0;
   }
+  
+  if (!Number.isFinite(h)) h = 9;
+  if (!Number.isFinite(m)) m = 0;
+  
+  // Intelligent 24-to-12 conversion if user typed 24h format e.g. 14:00
+  if (h > 12 && h <= 23) {
+    h -= 12;
+    ampm = 'PM';
+  } else if (h > 12) {
+    h = 12;
+  } else if (h < 1) {
+    h = 12;
+  }
+  
+  if (m < 0) m = 0;
+  if (m > 59) m = 59;
+  
+  const hour24 = ampm === 'PM' ? (h < 12 ? h + 12 : 12) : (h === 12 ? 0 : h);
+  
+  return {
+    h,
+    m,
+    ampm,
+    formatted: `${pad(h)}:${pad(m)}`,
+    hour24,
+  };
+}
+
+function updateSchedulePreview() {
+  const badge = $('#prefs-schedule-badge');
+  if (!badge) return;
+  
+  const timeInput = $('#prefs-task-time-input');
+  const ampmSelect = $('#prefs-task-time-ampm');
+  const timeInfo = validate12hTime(timeInput ? timeInput.value : '09:30', ampmSelect ? ampmSelect.value : 'AM');
+  
+  let dayLabel = 'Today';
+  if (selectedDayMode === 'tomorrow') {
+    dayLabel = 'Tomorrow';
+  } else if (selectedDayMode === 'custom' && selectedCustomDate) {
+    const [y, mo, da] = selectedCustomDate.split('-').map(Number);
+    const d = new Date(y, mo - 1, da);
+    dayLabel = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  
+  badge.textContent = `${dayLabel} at ${timeInfo.formatted} ${timeInfo.ampm}`;
+}
+
+function selectDay(mode, customDate = '') {
+  selectedDayMode = mode;
+  const todayBtn = $('#prefs-day-today');
+  const tomorrowBtn = $('#prefs-day-tomorrow');
+  const pickBtn = $('#prefs-day-pick-btn');
+  const pickLabel = $('#prefs-day-pick-label');
+  const dateInput = $('#prefs-task-date-input');
+  
+  todayBtn?.classList.toggle('active', mode === 'today');
+  tomorrowBtn?.classList.toggle('active', mode === 'tomorrow');
+  pickBtn?.classList.toggle('active', mode === 'custom');
+  
+  if (mode === 'custom' && customDate) {
+    selectedCustomDate = customDate;
+    if (dateInput) dateInput.value = customDate;
+    const [y, mo, da] = customDate.split('-').map(Number);
+    const d = new Date(y, mo - 1, da);
+    if (pickLabel) pickLabel.textContent = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } else if (mode !== 'custom') {
+    selectedCustomDate = '';
+    if (pickLabel) pickLabel.textContent = 'Pick date';
+  }
+  
+  updateSchedulePreview();
+}
+
+function initDaySelection() {
+  const todayBtn = $('#prefs-day-today');
+  const tomorrowBtn = $('#prefs-day-tomorrow');
+  const pickBtn = $('#prefs-day-pick-btn');
+  const dateInput = $('#prefs-task-date-input');
+  const timeInput = $('#prefs-task-time-input');
+  const ampmSelect = $('#prefs-task-time-ampm');
+  
+  if (dateInput) {
+    dateInput.min = getTodayStr();
+  }
+  
+  todayBtn?.addEventListener('click', () => selectDay('today'));
+  tomorrowBtn?.addEventListener('click', () => selectDay('tomorrow'));
+  
+  pickBtn?.addEventListener('click', () => {
+    if (dateInput) {
+      if (typeof dateInput.showPicker === 'function') {
+        dateInput.showPicker();
+      } else {
+        dateInput.click();
+      }
+    }
+  });
+  
+  dateInput?.addEventListener('change', () => {
+    if (dateInput.value) {
+      selectDay('custom', dateInput.value);
+    }
+  });
+  
+  timeInput?.addEventListener('input', () => {
+    updateSchedulePreview();
+  });
+  
+  timeInput?.addEventListener('blur', () => {
+    const val = validate12hTime(timeInput.value, ampmSelect?.value || 'AM');
+    timeInput.value = val.formatted;
+    if (ampmSelect) ampmSelect.value = val.ampm;
+    updateSchedulePreview();
+  });
+  
+  ampmSelect?.addEventListener('change', () => {
+    updateSchedulePreview();
+  });
 }
 
 function isToday(ts) {
@@ -326,44 +470,40 @@ function formatDue(ts) {
   }
 }
 
-function parseTimeInput(str) {
-  if (!str) return null;
-  const clean = String(str).trim();
-  if (!clean) return null;
+function calculateDueTimestamp() {
+  const timeInput = $('#prefs-task-time-input');
+  const ampmSelect = $('#prefs-task-time-ampm');
+  const timeInfo = validate12hTime(timeInput ? timeInput.value : '09:30', ampmSelect ? ampmSelect.value : 'AM');
   
-  const isPM = /pm$/i.test(clean);
-  const isAM = /am$/i.test(clean);
-  const timePart = clean.replace(/(am|pm)$/i, '').trim();
+  let targetYear, targetMonth, targetDay;
+  const now = new Date();
   
-  const parts = timePart.split(':').map((p) => parseInt(p, 10));
-  let h = parts[0];
-  let m = parts.length > 1 ? parts[1] : 0;
-  
-  if (!Number.isFinite(h) || h < 0 || h > 12) h = new Date().getHours();
-  if (!Number.isFinite(m) || m < 0 || m > 59) m = 0;
-  
-  if (isPM && h < 12) {
-    h += 12;
-  } else if (isAM && h === 12) {
-    h = 0;
-  }
-  
-  return { h, m };
-}
-
-function calculateDueTimestamp(timeStr) {
-  const parsed = parseTimeInput(timeStr);
-  const d = new Date();
-  if (parsed) {
-    d.setHours(parsed.h, parsed.m, 0, 0);
-    if (d.getTime() <= Date.now()) {
-      d.setDate(d.getDate() + 1);
-    }
+  if (selectedDayMode === 'tomorrow') {
+    const tom = new Date(now);
+    tom.setDate(tom.getDate() + 1);
+    targetYear = tom.getFullYear();
+    targetMonth = tom.getMonth();
+    targetDay = tom.getDate();
+  } else if (selectedDayMode === 'custom' && selectedCustomDate) {
+    const [y, mo, da] = selectedCustomDate.split('-').map(Number);
+    targetYear = y;
+    targetMonth = mo - 1;
+    targetDay = da;
   } else {
-    d.setTime(Date.now() + 15 * 60000);
+    // Today
+    targetYear = now.getFullYear();
+    targetMonth = now.getMonth();
+    targetDay = now.getDate();
   }
-  const val = d.getTime();
-  return Number.isFinite(val) ? val : Date.now() + 15 * 60000;
+  
+  const targetDate = new Date(targetYear, targetMonth, targetDay, timeInfo.hour24, timeInfo.m, 0, 0);
+  
+  // If today was selected and time already passed, automatically schedule for tomorrow
+  if (selectedDayMode === 'today' && targetDate.getTime() <= Date.now()) {
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
+  
+  return targetDate.getTime();
 }
 
 function setDefaultTime() {
@@ -373,11 +513,17 @@ function setDefaultTime() {
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12;
   h = h ? h : 12;
-  // Round to nearest 30 minutes
+  
   const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
   const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
   const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
-  $('#prefs-task-time').value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
+  
+  const timeInput = $('#prefs-task-time-input');
+  const ampmSelect = $('#prefs-task-time-ampm');
+  if (timeInput) timeInput.value = `${pad(finalHour)}:${pad(roundedMin)}`;
+  if (ampmSelect) ampmSelect.value = finalAmpm;
+  
+  selectDay('today');
 }
 
 async function loadTasks() {
@@ -417,10 +563,10 @@ function renderTasks() {
         <span class="prefs-task-time">${formatDue(t.dueTime)}</span>
       </div>
       <div class="prefs-task-actions">
-        <button class="btn-icon" data-action="edit" title="Edit">
+        <button class="btn-icon" data-action="edit" title="Edit task">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="btn-icon danger" data-action="delete" title="Delete">
+        <button class="btn-icon danger" data-action="delete" title="Delete task">
           <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
@@ -435,15 +581,14 @@ function renderTasks() {
 
 function addTask() {
   const text = $('#prefs-task-text').value.trim();
-  const timeStr = $('#prefs-task-time').value.trim();
-  const remindValue = $('#prefs-task-remind').value || 'default';
+  const remindValue = $('#prefs-task-remind')?.value || 'default';
   
   if (!text) {
     $('#prefs-task-text').focus();
     return;
   }
   
-  const dueTime = calculateDueTimestamp(timeStr);
+  const dueTime = calculateDueTimestamp();
   const remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
   const newTask = {
     id: String(Date.now() + Math.random().toString(36).slice(2, 6)),
@@ -460,8 +605,7 @@ function addTask() {
   tasks.push(newTask);
   api.saveTasks(tasks);
   $('#prefs-task-text').value = '';
-  $('#prefs-task-time').value = '';
-  $('#prefs-task-remind').value = 'default';
+  if ($('#prefs-task-remind')) $('#prefs-task-remind').value = 'default';
   setDefaultTime();
   renderTasks();
   saved('Task added');
@@ -470,26 +614,46 @@ function addTask() {
 function editTask(task) {
   $('#prefs-task-text').value = task.text;
   const d = new Date(task.dueTime);
+  
+  // 1. Day selection
+  const now = new Date();
+  const tom = new Date(now);
+  tom.setDate(tom.getDate() + 1);
+  
+  if (d.toDateString() === now.toDateString()) {
+    selectDay('today');
+  } else if (d.toDateString() === tom.toDateString()) {
+    selectDay('tomorrow');
+  } else {
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    selectDay('custom', `${yyyy}-${mm}-${dd}`);
+  }
+  
+  // 2. 12-hour Time & AM/PM
   let h = d.getHours();
   const m = d.getMinutes();
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12;
   h = h ? h : 12;
-  // Round to nearest 30 minutes
-  const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
-  const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
-  const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
-  $('#prefs-task-time').value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
   
-  // Set remind interval dropdown
-  if (task.remindInterval) {
+  const timeInput = $('#prefs-task-time-input');
+  const ampmSelect = $('#prefs-task-time-ampm');
+  if (timeInput) timeInput.value = `${pad(h)}:${pad(m)}`;
+  if (ampmSelect) ampmSelect.value = ampm;
+  
+  // 3. Remind interval
+  if (task.remindInterval && $('#prefs-task-remind')) {
     const minutes = task.remindInterval / 60000;
     $('#prefs-task-remind').value = String(minutes);
-  } else {
+  } else if ($('#prefs-task-remind')) {
     $('#prefs-task-remind').value = 'default';
   }
   
-  $('#prefs-task-add').textContent = 'Update';
+  updateSchedulePreview();
+  
+  $('#prefs-task-add').textContent = 'Update Task';
   $('#prefs-task-add').dataset.editId = task.id;
   $('#prefs-task-text').focus();
 }
@@ -502,8 +666,7 @@ function updateTask() {
   }
   
   const text = $('#prefs-task-text').value.trim();
-  const timeStr = $('#prefs-task-time').value.trim();
-  const remindValue = $('#prefs-task-remind').value || 'default';
+  const remindValue = $('#prefs-task-remind')?.value || 'default';
   
   if (!text) {
     $('#prefs-task-text').focus();
@@ -513,21 +676,20 @@ function updateTask() {
   const taskIndex = tasks.findIndex((t) => t.id === editId);
   if (taskIndex === -1) {
     delete $('#prefs-task-add').dataset.editId;
-    $('#prefs-task-add').textContent = 'Add';
+    $('#prefs-task-add').textContent = 'Add Task';
     return;
   }
   
   tasks[taskIndex].text = text;
-  tasks[taskIndex].dueTime = calculateDueTimestamp(timeStr);
+  tasks[taskIndex].dueTime = calculateDueTimestamp();
   tasks[taskIndex].remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
   
   api.saveTasks(tasks);
   $('#prefs-task-text').value = '';
-  $('#prefs-task-time').value = '';
-  $('#prefs-task-remind').value = 'default';
+  if ($('#prefs-task-remind')) $('#prefs-task-remind').value = 'default';
   setDefaultTime();
   delete $('#prefs-task-add').dataset.editId;
-  $('#prefs-task-add').textContent = 'Add';
+  $('#prefs-task-add').textContent = 'Add Task';
   renderTasks();
   saved('Task updated');
 }
@@ -539,7 +701,7 @@ function deleteTask(id) {
   saved('Task deleted');
 }
 
-$('#prefs-task-add').addEventListener('click', () => {
+$('#prefs-task-add')?.addEventListener('click', () => {
   if ($('#prefs-task-add').dataset.editId) {
     updateTask();
   } else {
@@ -547,7 +709,7 @@ $('#prefs-task-add').addEventListener('click', () => {
   }
 });
 
-$('#prefs-task-text').addEventListener('keydown', (e) => {
+$('#prefs-task-text')?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     if ($('#prefs-task-add').dataset.editId) {
@@ -558,6 +720,6 @@ $('#prefs-task-text').addEventListener('keydown', (e) => {
   }
 });
 
-populateTimeDropdown();
+initDaySelection();
 setDefaultTime();
 loadTasks();

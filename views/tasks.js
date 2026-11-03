@@ -82,20 +82,76 @@
 
   const pad = (n) => String(n).padStart(2, '0');
 
-  // Populate time dropdown with 12-hour format options
-  function populateTimeDropdown() {
-    if (!timeEl) return;
-    timeEl.innerHTML = '<option value="">--:--</option>';
-    for (let hour = 0; hour < 24; hour++) {
-      for (let min = 0; min < 60; min += 30) {
-        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const value = `${displayHour}:${pad(min)} ${ampm}`;
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = value;
-        timeEl.appendChild(option);
+  function getTodayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  // Format 12-hour time and validate strictly (Hours: 1-12, Minutes: 00-59)
+  function validate12hTime(raw, currentAmpm = 'AM') {
+    let str = String(raw || '').trim();
+    let ampm = currentAmpm === 'PM' ? 'PM' : 'AM';
+    if (/pm$/i.test(str)) { ampm = 'PM'; str = str.replace(/pm$/i, '').trim(); }
+    else if (/am$/i.test(str)) { ampm = 'AM'; str = str.replace(/am$/i, '').trim(); }
+
+    let h = 9, m = 30;
+    if (str.includes(':')) {
+      const parts = str.split(':');
+      h = parseInt(parts[0], 10);
+      m = parseInt(parts[1], 10);
+    } else if (/^\d{3,4}$/.test(str)) {
+      if (str.length === 3) {
+        h = parseInt(str.slice(0, 1), 10);
+        m = parseInt(str.slice(1), 10);
+      } else {
+        h = parseInt(str.slice(0, 2), 10);
+        m = parseInt(str.slice(2), 10);
       }
+    } else if (/^\d{1,2}$/.test(str)) {
+      h = parseInt(str, 10);
+      m = 0;
+    }
+
+    if (!Number.isFinite(h)) h = 9;
+    if (!Number.isFinite(m)) m = 0;
+
+    if (h > 12 && h <= 23) {
+      h -= 12;
+      ampm = 'PM';
+    } else if (h > 12) {
+      h = 12;
+    } else if (h < 1) {
+      h = 12;
+    }
+
+    if (m < 0) m = 0;
+    if (m > 59) m = 59;
+
+    const hour24 = ampm === 'PM' ? (h < 12 ? h + 12 : 12) : (h === 12 ? 0 : h);
+    return {
+      h,
+      m,
+      ampm,
+      formatted: `${pad(h)}:${pad(m)}`,
+      hour24,
+    };
+  }
+
+  function selectDay(mode, customDate = '') {
+    selectedDayMode = mode;
+    dayTodayBtn?.classList.toggle('active', mode === 'today');
+    dayTomorrowBtn?.classList.toggle('active', mode === 'tomorrow');
+    dayPickBtn?.classList.toggle('active', mode === 'custom');
+
+    if (mode === 'custom' && customDate) {
+      selectedCustomDate = customDate;
+      if (dateInput) dateInput.value = customDate;
+      const [y, mo, da] = customDate.split('-').map(Number);
+      const d = new Date(y, mo - 1, da);
+      if (dayPickLabel) dayPickLabel.textContent = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } else if (mode !== 'custom') {
+      selectedCustomDate = '';
+      if (dayPickLabel) dayPickLabel.textContent = 'Date';
     }
   }
 
@@ -151,58 +207,58 @@
     }
   }
 
-  // Pre-fill time input (default to +15 min) in 12-hour format
   function setDefaultTime(addMin = 15) {
-    if (!timeEl) return;
     const d = new Date(Date.now() + addMin * 60000);
     let h = d.getHours();
     const m = d.getMinutes();
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12;
-    h = h ? h : 12; // Convert 0 to 12
-    // Round to nearest 30 minutes
+    h = h ? h : 12;
+
     const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
     const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
     const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
-    timeEl.value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
-  }
-  populateTimeDropdown();
-  setDefaultTime(15);
 
-  // Day toggle buttons (Today / Tomorrow)
-  dayTodayBtn?.addEventListener('click', () => {
-    selectedDayOffset = 0;
-    dayTodayBtn.classList.add('active');
-    dayTomorrowBtn?.classList.remove('active');
+    if (timeEl) timeEl.value = `${pad(finalHour)}:${pad(roundedMin)}`;
+    if (ampmEl) ampmEl.value = finalAmpm;
+    selectDay('today');
+  }
+
+  if (dateInput) dateInput.min = getTodayStr();
+
+  dayTodayBtn?.addEventListener('click', () => selectDay('today'));
+  dayTomorrowBtn?.addEventListener('click', () => selectDay('tomorrow'));
+
+  dayPickBtn?.addEventListener('click', () => {
+    if (dateInput) {
+      if (typeof dateInput.showPicker === 'function') {
+        dateInput.showPicker();
+      } else {
+        dateInput.click();
+      }
+    }
   });
 
-  dayTomorrowBtn?.addEventListener('click', () => {
-    selectedDayOffset = 1;
-    dayTomorrowBtn.classList.add('active');
-    dayTodayBtn?.classList.remove('active');
+  dateInput?.addEventListener('change', () => {
+    if (dateInput.value) {
+      selectDay('custom', dateInput.value);
+    }
   });
 
   // Preset buttons (+10m, +30m, +1h, +3h)
   $$('.task-preset[data-add-min]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const mins = Number(btn.dataset.addMin || 15);
-      selectedDayOffset = 0;
-      dayTodayBtn?.classList.add('active');
-      dayTomorrowBtn?.classList.remove('active');
-      setDefaultTime(mins);
-      // Set the dropdown value
-      if (timeEl) {
-        const d = new Date(Date.now() + mins * 60000);
-        let h = d.getHours();
-        const m = d.getMinutes();
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12;
-        h = h ? h : 12;
-        const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
-        const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
-        const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
-        timeEl.value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
-      }
+      const d = new Date(Date.now() + mins * 60000);
+      let h = d.getHours();
+      const m = d.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+
+      if (timeEl) timeEl.value = `${pad(h)}:${pad(m)}`;
+      if (ampmEl) ampmEl.value = ampm;
+      selectDay('today');
     });
   });
 
@@ -222,8 +278,8 @@
   tabActiveBtn?.addEventListener('click', () => switchTab(false));
   tabFinishedBtn?.addEventListener('click', () => switchTab(true));
 
-  // Focus tracking for island overlay
-  [inputEl].forEach((el) => {
+  // Focus tracking for desktop overlay inputs
+  [inputEl, timeEl].forEach((el) => {
     if (!el) return;
     el.addEventListener('pointerdown', () => {
       bridge.focusInput(true);
@@ -231,10 +287,29 @@
     });
     el.addEventListener('blur', () => {
       bridge.focusInput(false);
+      if (el === timeEl) {
+        const val = validate12hTime(timeEl.value, ampmEl?.value || 'AM');
+        timeEl.value = val.formatted;
+        if (ampmEl) ampmEl.value = val.ampm;
+      }
     });
   });
-  timeEl?.addEventListener('focus', () => bridge.focusInput(true));
-  timeEl?.addEventListener('blur', () => bridge.focusInput(false));
+
+  timeEl?.addEventListener('input', () => {
+    // Auto-insert colon if user types e.g. 0930
+    const raw = timeEl.value.replace(/[^0-9:]/g, '');
+    if (raw.length === 4 && !raw.includes(':')) {
+      timeEl.value = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+    }
+  });
+
+  // Ensure mouse wheel and touch scrolling work smoothly inside task list and done table
+  [listEl?.parentElement, doneTbody?.closest('.task-table-container')].forEach((container) => {
+    if (!container) return;
+    container.addEventListener('wheel', (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+  });
 
   function saveTasks() {
     try {
@@ -253,7 +328,6 @@
         const stored = localStorage.getItem('yovy-tasks');
         if (stored) loaded = JSON.parse(stored);
       }
-      // Sanitize: filter out any corrupted or NaN tasks
       tasks = (Array.isArray(loaded) ? loaded : []).filter((t) =>
         t && typeof t === 'object' && t.id && typeof t.text === 'string' && Number.isFinite(t.dueTime) && t.dueTime > 0
       ).map((t) => ({
@@ -267,49 +341,33 @@
     tick();
   }
 
-  // Parse time input string cleanly without throwing or NaN (supports 12-hour AM/PM format)
-  function parseTimeInput(str) {
-    if (!str) return null;
-    const clean = String(str).trim();
-    if (!clean) return null;
-    
-    // Check for AM/PM suffix
-    const isPM = /pm$/i.test(clean);
-    const isAM = /am$/i.test(clean);
-    const timePart = clean.replace(/(am|pm)$/i, '').trim();
-    
-    const parts = timePart.split(':').map((p) => parseInt(p, 10));
-    let h = parts[0];
-    let m = parts.length > 1 ? parts[1] : 0;
-    
-    if (!Number.isFinite(h) || h < 0 || h > 12) h = new Date().getHours();
-    if (!Number.isFinite(m) || m < 0 || m > 59) m = 0;
-    
-    // Convert 12-hour to 24-hour format
-    if (isPM && h < 12) {
-      h += 12;
-    } else if (isAM && h === 12) {
-      h = 0;
-    }
-    
-    return { h, m };
-  }
+  function calculateDueTimestamp() {
+    const timeInfo = validate12hTime(timeEl?.value || '09:30', ampmEl?.value || 'AM');
+    let targetYear, targetMonth, targetDay;
+    const now = new Date();
 
-  function calculateDueTimestamp(dayOffset, timeStr) {
-    const parsed = parseTimeInput(timeStr);
-    const d = new Date();
-    d.setDate(d.getDate() + dayOffset);
-    if (parsed) {
-      d.setHours(parsed.h, parsed.m, 0, 0);
-      // If today and time already passed, automatically push to tomorrow
-      if (dayOffset === 0 && d.getTime() <= Date.now()) {
-        d.setDate(d.getDate() + 1);
-      }
+    if (selectedDayMode === 'tomorrow') {
+      const tom = new Date(now);
+      tom.setDate(tom.getDate() + 1);
+      targetYear = tom.getFullYear();
+      targetMonth = tom.getMonth();
+      targetDay = tom.getDate();
+    } else if (selectedDayMode === 'custom' && selectedCustomDate) {
+      const [y, mo, da] = selectedCustomDate.split('-').map(Number);
+      targetYear = y;
+      targetMonth = mo - 1;
+      targetDay = da;
     } else {
-      d.setTime(Date.now() + 15 * 60000);
+      targetYear = now.getFullYear();
+      targetMonth = now.getMonth();
+      targetDay = now.getDate();
     }
-    const val = d.getTime();
-    return Number.isFinite(val) ? val : Date.now() + 15 * 60000;
+
+    const targetDate = new Date(targetYear, targetMonth, targetDay, timeInfo.hour24, timeInfo.m, 0, 0);
+    if (selectedDayMode === 'today' && targetDate.getTime() <= Date.now()) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+    return targetDate.getTime();
   }
 
   function addTask() {
@@ -318,7 +376,7 @@
       inputEl?.focus();
       return;
     }
-    const dueTime = calculateDueTimestamp(selectedDayOffset, timeEl?.value);
+    const dueTime = calculateDueTimestamp();
     const remindValue = remindEl?.value || 'default';
     const remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
     const newTask = {
@@ -330,16 +388,12 @@
       lastRemind: 0,
       createdAt: Date.now(),
       finishedAt: 0,
-      remindInterval, // Per-task reminder interval in milliseconds (null = use global setting)
+      remindInterval,
     };
     tasks.unshift(newTask);
     saveTasks();
     if (inputEl) inputEl.value = '';
-    if (timeEl) timeEl.value = '';
     if (remindEl) remindEl.value = 'default';
-    selectedDayOffset = 0;
-    dayTodayBtn?.classList.add('active');
-    dayTomorrowBtn?.classList.remove('active');
     setDefaultTime(15);
     render();
     tick();
@@ -353,6 +407,7 @@
     }
   });
 
+  setDefaultTime(15);
   // Finish a task action with celebration
   function finishTask(task) {
     task.completed = true;

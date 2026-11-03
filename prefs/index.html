@@ -183,29 +183,63 @@
         <h1>Tasks</h1>
         <div class="group">
           <h2>Task Management</h2>
-          <div class="card">
-            <div class="task-input-row">
-              <input type="text" id="prefs-task-text" placeholder="Task name..." maxlength="80">
-              <select id="prefs-task-time">
-                <option value="">--:--</option>
-              </select>
-              <select id="prefs-task-remind">
-                <option value="default">Auto</option>
-                <option value="1">Every 1 min</option>
-                <option value="2">Every 2 min</option>
-                <option value="3">Every 3 min</option>
-                <option value="5">Every 5 min</option>
-                <option value="10">Every 10 min</option>
-                <option value="15">Every 15 min</option>
-                <option value="20">Every 20 min</option>
-                <option value="30">Every 30 min</option>
-                <option value="45">Every 45 min</option>
-                <option value="60">Every 1 hour</option>
-              </select>
-              <button class="btn" id="prefs-task-add">Add</button>
+          <div class="card task-management-card">
+            <div class="task-input-box">
+              <div class="task-input-main-row">
+                <input type="text" id="prefs-task-text" placeholder="Task name..." maxlength="80" autocomplete="off">
+                <button class="btn accent" id="prefs-task-add">Add Task</button>
+              </div>
+              <div class="task-scheduling-row">
+                <!-- Day Selection (Requirement 2) -->
+                <div class="prefs-day-selector" role="group" aria-label="Task Day">
+                  <button type="button" class="day-chip active" id="prefs-day-today" data-day="today">Today</button>
+                  <button type="button" class="day-chip" id="prefs-day-tomorrow" data-day="tomorrow">Tomorrow</button>
+                  <div class="prefs-date-picker-wrap">
+                    <button type="button" class="day-chip date-chip" id="prefs-day-pick-btn" title="Pick a specific date">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                      <span id="prefs-day-pick-label">Pick date</span>
+                    </button>
+                    <input type="date" id="prefs-task-date-input" class="hidden-date-input" tabindex="-1" aria-label="Pick date">
+                  </div>
+                </div>
+
+                <!-- Time Input: [ 09 : 30 ] [ AM ▼ ] (Requirement 1) -->
+                <div class="prefs-time-box" role="group" aria-label="Task Time">
+                  <input type="text" id="prefs-task-time-input" class="time-text-input" placeholder="09:30" maxlength="5" inputmode="numeric" autocomplete="off" spellcheck="false" title="Enter time in 12-hour format">
+                  <select id="prefs-task-time-ampm" class="time-ampm-select" title="AM or PM">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+
+                <!-- Remind Interval -->
+                <select id="prefs-task-remind" class="prefs-remind-select" title="Reminder frequency">
+                  <option value="default">Auto remind</option>
+                  <option value="1">Every 1 min</option>
+                  <option value="2">Every 2 min</option>
+                  <option value="3">Every 3 min</option>
+                  <option value="5">Every 5 min</option>
+                  <option value="10">Every 10 min</option>
+                  <option value="15">Every 15 min</option>
+                  <option value="20">Every 20 min</option>
+                  <option value="30">Every 30 min</option>
+                  <option value="45">Every 45 min</option>
+                  <option value="60">Every 1 hour</option>
+                </select>
+              </div>
+
+              <!-- Visual distinction of selected day/date -->
+              <div class="prefs-schedule-preview" id="prefs-schedule-preview">
+                <span class="preview-label">Scheduled for:</span>
+                <span class="preview-badge" id="prefs-schedule-badge">Today at 09:30 AM</span>
+              </div>
             </div>
-            <div class="task-list" id="prefs-task-list"></div>
-            <div class="task-empty" id="prefs-task-empty">No tasks yet</div>
+
+            <!-- Task List with Working Scrolling (Requirement 3) -->
+            <div class="task-list-wrapper">
+              <div class="task-list" id="prefs-task-list"></div>
+              <div class="task-empty" id="prefs-task-empty">No tasks yet</div>
+            </div>
           </div>
         </div>
         <div class="group">

@@ -205,7 +205,7 @@ bridge.onToggle(() => {
 });
 
 // ---------------- drag to move (docks when dropped at the top edge) ----------------
-const NO_DRAG = 'button, input, textarea, .slider, .file, .app, .pick, .picker, .clip-item, .shelf-items, .shelf-note-card';
+const NO_DRAG = 'button, input, select, textarea, .slider, .file, .app, .pick, .picker, .clip-item, .shelf-items, .shelf-note-card, .task-list-container, .task-table-container, .task-row, .task-done-table, .task-pane, .task-input-box';
 let press = null;
 let justMoved = false;
 
@@ -758,7 +758,7 @@ $('#vol-btn').addEventListener('click', () => {
 });
 
 island.addEventListener('wheel', (e) => {
-  if (e.target.closest('.picker-list, .clip-list, .shelf-items') || state.vol === null) return;
+  if (e.target.closest('.picker-list, .clip-list, .shelf-items, .task-list-container, .task-table-container, .task-list, #v-tasks') || state.vol === null) return;
   e.preventDefault();
   // proportional to the scroll distance: one mouse notch ≈ 3%, touchpads move in fine steps
   const perPx = e.deltaMode === 1 ? 0.01 : 0.0003;

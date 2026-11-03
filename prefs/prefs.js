@@ -236,8 +236,8 @@ showPage(remembered());
 
 // ---- search: rows from every page whose title matches ----
 // rows without a title (the city and calendar link fields) stay on their own page
-const items = [...$$('.row, .chip')];
-const title = (el) => el.querySelector('b')?.textContent.toLowerCase() || '';
+const items = [...$$('.row, .chip, .prefs-task-row')];
+const title = (el) => el.querySelector('b')?.textContent.toLowerCase() || el.querySelector('.prefs-task-text')?.textContent.toLowerCase() || '';
 function search(q) {
   q = q.trim().toLowerCase();
   document.body.classList.toggle('searching', !!q);
@@ -253,11 +253,11 @@ function search(q) {
   $$('.group').forEach((g) => {
     const head = g.querySelector('h2')?.textContent.toLowerCase().includes(q);
     if (head) g.querySelectorAll('.miss').forEach((el) => { if (title(el)) el.classList.remove('miss'); });
-    g.classList.toggle('empty', !g.querySelector('.row:not(.miss):not(.off), .chip:not(.miss)'));
+    g.classList.toggle('empty', !g.querySelector('.row:not(.miss):not(.off), .chip:not(.miss), .prefs-task-row:not(.miss)'));
   });
   let any = false;
   $$('.page').forEach((p) => {
-    const empty = !p.querySelector('.group:not(.empty)');
+    const empty = !p.querySelector('.row:not(.miss):not(.off), .chip:not(.miss), .prefs-task-row:not(.miss)');
     p.classList.toggle('empty', empty);
     any ||= !empty;
   });
@@ -274,3 +274,290 @@ api.onFeatures(showFeatures);
 api.onGeneral(showGeneral);
 api.features().then(showFeatures);
 api.general().then(showGeneral);
+
+// ---- tasks management ----
+let tasks = [];
+const pad = (n) => String(n).padStart(2, '0');
+
+// Populate time dropdown with 12-hour format options
+function populateTimeDropdown() {
+  const select = $('#prefs-task-time');
+  if (!select) return;
+  select.innerHTML = '<option value="">--:--</option>';
+  for (let hour = 0; hour < 24; hour++) {
+    for (let min = 0; min < 60; min += 30) {
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const value = `${displayHour}:${pad(min)} ${ampm}`;
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    }
+  }
+}
+
+function isToday(ts) {
+  if (!Number.isFinite(ts)) return false;
+  const d = new Date(ts);
+  const now = new Date();
+  return d.toDateString() === now.toDateString();
+}
+
+function isTomorrow(ts) {
+  if (!Number.isFinite(ts)) return false;
+  const d = new Date(ts);
+  const tom = new Date();
+  tom.setDate(tom.getDate() + 1);
+  return d.toDateString() === tom.toDateString();
+}
+
+function formatDue(ts) {
+  if (!Number.isFinite(ts) || ts <= 0) return '—';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (isToday(ts)) return `Today ${timeStr}`;
+    if (isTomorrow(ts)) return `Tomorrow ${timeStr}`;
+    return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeStr}`;
+  } catch {
+    return '—';
+  }
+}
+
+function parseTimeInput(str) {
+  if (!str) return null;
+  const clean = String(str).trim();
+  if (!clean) return null;
+  
+  const isPM = /pm$/i.test(clean);
+  const isAM = /am$/i.test(clean);
+  const timePart = clean.replace(/(am|pm)$/i, '').trim();
+  
+  const parts = timePart.split(':').map((p) => parseInt(p, 10));
+  let h = parts[0];
+  let m = parts.length > 1 ? parts[1] : 0;
+  
+  if (!Number.isFinite(h) || h < 0 || h > 12) h = new Date().getHours();
+  if (!Number.isFinite(m) || m < 0 || m > 59) m = 0;
+  
+  if (isPM && h < 12) {
+    h += 12;
+  } else if (isAM && h === 12) {
+    h = 0;
+  }
+  
+  return { h, m };
+}
+
+function calculateDueTimestamp(timeStr) {
+  const parsed = parseTimeInput(timeStr);
+  const d = new Date();
+  if (parsed) {
+    d.setHours(parsed.h, parsed.m, 0, 0);
+    if (d.getTime() <= Date.now()) {
+      d.setDate(d.getDate() + 1);
+    }
+  } else {
+    d.setTime(Date.now() + 15 * 60000);
+  }
+  const val = d.getTime();
+  return Number.isFinite(val) ? val : Date.now() + 15 * 60000;
+}
+
+function setDefaultTime() {
+  const d = new Date(Date.now() + 15 * 60000);
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  h = h ? h : 12;
+  // Round to nearest 30 minutes
+  const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
+  const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
+  const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
+  $('#prefs-task-time').value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
+}
+
+async function loadTasks() {
+  try {
+    tasks = await api.tasks() || [];
+    if (!Array.isArray(tasks)) tasks = [];
+    tasks = tasks.filter((t) =>
+      t && typeof t === 'object' && t.id && typeof t.text === 'string' && Number.isFinite(t.dueTime) && t.dueTime > 0
+    );
+  } catch {
+    tasks = [];
+  }
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = $('#prefs-task-list');
+  const empty = $('#prefs-task-empty');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  const sorted = [...tasks].sort((a, b) => a.dueTime - b.dueTime);
+  
+  if (sorted.length === 0) {
+    empty.hidden = false;
+    return;
+  }
+  
+  empty.hidden = true;
+  
+  sorted.forEach((t) => {
+    const row = document.createElement('div');
+    row.className = 'prefs-task-row';
+    row.innerHTML = `
+      <div class="prefs-task-info">
+        <span class="prefs-task-text">${t.text}</span>
+        <span class="prefs-task-time">${formatDue(t.dueTime)}</span>
+      </div>
+      <div class="prefs-task-actions">
+        <button class="btn-icon" data-action="edit" title="Edit">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon danger" data-action="delete" title="Delete">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    `;
+    
+    row.querySelector('[data-action="edit"]')?.addEventListener('click', () => editTask(t));
+    row.querySelector('[data-action="delete"]')?.addEventListener('click', () => deleteTask(t.id));
+    
+    list.append(row);
+  });
+}
+
+function addTask() {
+  const text = $('#prefs-task-text').value.trim();
+  const timeStr = $('#prefs-task-time').value.trim();
+  const remindValue = $('#prefs-task-remind').value || 'default';
+  
+  if (!text) {
+    $('#prefs-task-text').focus();
+    return;
+  }
+  
+  const dueTime = calculateDueTimestamp(timeStr);
+  const remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
+  const newTask = {
+    id: String(Date.now() + Math.random().toString(36).slice(2, 6)),
+    text,
+    dueTime,
+    completed: false,
+    fired: false,
+    lastRemind: 0,
+    createdAt: Date.now(),
+    finishedAt: 0,
+    remindInterval,
+  };
+  
+  tasks.push(newTask);
+  api.saveTasks(tasks);
+  $('#prefs-task-text').value = '';
+  $('#prefs-task-time').value = '';
+  $('#prefs-task-remind').value = 'default';
+  setDefaultTime();
+  renderTasks();
+  saved('Task added');
+}
+
+function editTask(task) {
+  $('#prefs-task-text').value = task.text;
+  const d = new Date(task.dueTime);
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  h = h ? h : 12;
+  // Round to nearest 30 minutes
+  const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
+  const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
+  const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
+  $('#prefs-task-time').value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
+  
+  // Set remind interval dropdown
+  if (task.remindInterval) {
+    const minutes = task.remindInterval / 60000;
+    $('#prefs-task-remind').value = String(minutes);
+  } else {
+    $('#prefs-task-remind').value = 'default';
+  }
+  
+  $('#prefs-task-add').textContent = 'Update';
+  $('#prefs-task-add').dataset.editId = task.id;
+  $('#prefs-task-text').focus();
+}
+
+function updateTask() {
+  const editId = $('#prefs-task-add').dataset.editId;
+  if (!editId) {
+    addTask();
+    return;
+  }
+  
+  const text = $('#prefs-task-text').value.trim();
+  const timeStr = $('#prefs-task-time').value.trim();
+  const remindValue = $('#prefs-task-remind').value || 'default';
+  
+  if (!text) {
+    $('#prefs-task-text').focus();
+    return;
+  }
+  
+  const taskIndex = tasks.findIndex((t) => t.id === editId);
+  if (taskIndex === -1) {
+    delete $('#prefs-task-add').dataset.editId;
+    $('#prefs-task-add').textContent = 'Add';
+    return;
+  }
+  
+  tasks[taskIndex].text = text;
+  tasks[taskIndex].dueTime = calculateDueTimestamp(timeStr);
+  tasks[taskIndex].remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
+  
+  api.saveTasks(tasks);
+  $('#prefs-task-text').value = '';
+  $('#prefs-task-time').value = '';
+  $('#prefs-task-remind').value = 'default';
+  setDefaultTime();
+  delete $('#prefs-task-add').dataset.editId;
+  $('#prefs-task-add').textContent = 'Add';
+  renderTasks();
+  saved('Task updated');
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter((t) => t.id !== id);
+  api.saveTasks(tasks);
+  renderTasks();
+  saved('Task deleted');
+}
+
+$('#prefs-task-add').addEventListener('click', () => {
+  if ($('#prefs-task-add').dataset.editId) {
+    updateTask();
+  } else {
+    addTask();
+  }
+});
+
+$('#prefs-task-text').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if ($('#prefs-task-add').dataset.editId) {
+      updateTask();
+    } else {
+      addTask();
+    }
+  }
+});
+
+populateTimeDropdown();
+setDefaultTime();
+loadTasks();

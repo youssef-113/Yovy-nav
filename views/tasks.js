@@ -18,6 +18,7 @@
   // Input elements
   const inputEl = $('#task-input-text');
   const timeEl = $('#task-input-time');
+  const remindEl = $('#task-input-remind');
   const addBtn = $('#task-add-btn');
   const dayTodayBtn = $('#task-day-today');
   const dayTomorrowBtn = $('#task-day-tomorrow');
@@ -55,7 +56,12 @@
 
   let tasks = [];
   let selectedDayOffset = 0; // 0 = today, 1 = tomorrow
-  const RE_REMIND_MS = 2.5 * 60000;
+  
+  // Get reminder interval from features (default 5 minutes)
+  function getRemindInterval() {
+    const minutes = state.features.taskRemindEvery || 5;
+    return minutes * 60000;
+  }
 
   // Alerts switch (shared with features.taskAlerts)
   let alertsOn = true;
@@ -75,6 +81,23 @@
   });
 
   const pad = (n) => String(n).padStart(2, '0');
+
+  // Populate time dropdown with 12-hour format options
+  function populateTimeDropdown() {
+    if (!timeEl) return;
+    timeEl.innerHTML = '<option value="">--:--</option>';
+    for (let hour = 0; hour < 24; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const value = `${displayHour}:${pad(min)} ${ampm}`;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        timeEl.appendChild(option);
+      }
+    }
+  }
 
   const left = (ms) => {
     const s = Math.max(0, Math.floor(ms / 1000));
@@ -109,8 +132,8 @@
       const d = new Date(ts);
       if (isNaN(d.getTime())) return '—';
       const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      if (isToday(ts)) return `اليوم ${timeStr}`;
-      if (isTomorrow(ts)) return `غداً ${timeStr}`;
+      if (isToday(ts)) return `Today ${timeStr}`;
+      if (isTomorrow(ts)) return `Tomorrow ${timeStr}`;
       return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeStr}`;
     } catch {
       return '—';
@@ -128,12 +151,22 @@
     }
   }
 
-  // Pre-fill time input (default to +15 min)
+  // Pre-fill time input (default to +15 min) in 12-hour format
   function setDefaultTime(addMin = 15) {
     if (!timeEl) return;
     const d = new Date(Date.now() + addMin * 60000);
-    timeEl.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    let h = d.getHours();
+    const m = d.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    h = h ? h : 12; // Convert 0 to 12
+    // Round to nearest 30 minutes
+    const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
+    const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
+    const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
+    timeEl.value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
   }
+  populateTimeDropdown();
   setDefaultTime(15);
 
   // Day toggle buttons (Today / Tomorrow)
@@ -157,6 +190,19 @@
       dayTodayBtn?.classList.add('active');
       dayTomorrowBtn?.classList.remove('active');
       setDefaultTime(mins);
+      // Set the dropdown value
+      if (timeEl) {
+        const d = new Date(Date.now() + mins * 60000);
+        let h = d.getHours();
+        const m = d.getMinutes();
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        h = h ? h : 12;
+        const roundedMin = m < 15 ? 0 : m < 45 ? 30 : 0;
+        const finalHour = roundedMin === 0 && m >= 45 ? (h === 12 ? 1 : h + 1) : h;
+        const finalAmpm = roundedMin === 0 && m >= 45 ? (ampm === 'AM' ? 'PM' : 'AM') : ampm;
+        timeEl.value = `${finalHour}:${pad(roundedMin)} ${finalAmpm}`;
+      }
     });
   });
 
@@ -177,7 +223,7 @@
   tabFinishedBtn?.addEventListener('click', () => switchTab(true));
 
   // Focus tracking for island overlay
-  [inputEl, timeEl].forEach((el) => {
+  [inputEl].forEach((el) => {
     if (!el) return;
     el.addEventListener('pointerdown', () => {
       bridge.focusInput(true);
@@ -187,6 +233,8 @@
       bridge.focusInput(false);
     });
   });
+  timeEl?.addEventListener('focus', () => bridge.focusInput(true));
+  timeEl?.addEventListener('blur', () => bridge.focusInput(false));
 
   function saveTasks() {
     try {
@@ -208,7 +256,10 @@
       // Sanitize: filter out any corrupted or NaN tasks
       tasks = (Array.isArray(loaded) ? loaded : []).filter((t) =>
         t && typeof t === 'object' && t.id && typeof t.text === 'string' && Number.isFinite(t.dueTime) && t.dueTime > 0
-      );
+      ).map((t) => ({
+        ...t,
+        remindInterval: t.remindInterval && Number.isFinite(t.remindInterval) ? t.remindInterval : null,
+      }));
     } catch {
       tasks = [];
     }
@@ -216,16 +267,31 @@
     tick();
   }
 
-  // Parse time input string cleanly without throwing or NaN
+  // Parse time input string cleanly without throwing or NaN (supports 12-hour AM/PM format)
   function parseTimeInput(str) {
     if (!str) return null;
     const clean = String(str).trim();
     if (!clean) return null;
-    const parts = clean.split(':').map((p) => parseInt(p, 10));
+    
+    // Check for AM/PM suffix
+    const isPM = /pm$/i.test(clean);
+    const isAM = /am$/i.test(clean);
+    const timePart = clean.replace(/(am|pm)$/i, '').trim();
+    
+    const parts = timePart.split(':').map((p) => parseInt(p, 10));
     let h = parts[0];
     let m = parts.length > 1 ? parts[1] : 0;
-    if (!Number.isFinite(h) || h < 0 || h > 23) h = new Date().getHours();
+    
+    if (!Number.isFinite(h) || h < 0 || h > 12) h = new Date().getHours();
     if (!Number.isFinite(m) || m < 0 || m > 59) m = 0;
+    
+    // Convert 12-hour to 24-hour format
+    if (isPM && h < 12) {
+      h += 12;
+    } else if (isAM && h === 12) {
+      h = 0;
+    }
+    
     return { h, m };
   }
 
@@ -253,6 +319,8 @@
       return;
     }
     const dueTime = calculateDueTimestamp(selectedDayOffset, timeEl?.value);
+    const remindValue = remindEl?.value || 'default';
+    const remindInterval = remindValue === 'default' ? null : parseInt(remindValue, 10) * 60000;
     const newTask = {
       id: String(Date.now() + Math.random().toString(36).slice(2, 6)),
       text,
@@ -262,10 +330,13 @@
       lastRemind: 0,
       createdAt: Date.now(),
       finishedAt: 0,
+      remindInterval, // Per-task reminder interval in milliseconds (null = use global setting)
     };
     tasks.unshift(newTask);
     saveTasks();
     if (inputEl) inputEl.value = '';
+    if (timeEl) timeEl.value = '';
+    if (remindEl) remindEl.value = 'default';
     selectedDayOffset = 0;
     dayTodayBtn?.classList.add('active');
     dayTomorrowBtn?.classList.remove('active');
@@ -288,22 +359,26 @@
     task.finishedAt = Date.now();
     saveTasks();
 
-    // 1. Play completion chime
-    playTones([[0, 659], [0.15, 880], [0.35, 1046]], { peak: 0.22, attack: 0.02, decay: 0.8 });
+    // 1. Play completion chime with more notes
+    playTones([[0, 659], [0.15, 880], [0.35, 1046], [0.5, 1318]], { peak: 0.25, attack: 0.02, decay: 1.0 });
 
-    // 2. Sparkles animation
+    // 2. Enhanced sparkles animation with more particles and colors
     if (feat('celebrate')) {
-      celebrate(['#ffd479', '#ff9f0a', '#30d158', '#8ab4ff', '#ff6b9d']);
+      celebrate(['#ffd479', '#ff9f0a', '#30d158', '#8ab4ff', '#ff6b9d', '#ff375f', '#bf5af2', '#64d2ff']);
+      // Trigger a second wave of sparkles after a short delay
+      setTimeout(() => {
+        celebrate(['#ffd479', '#ff9f0a', '#30d158', '#8ab4ff', '#ff6b9d', '#ff375f', '#bf5af2', '#64d2ff']);
+      }, 300);
     }
 
     // 3. Toast with celebration
-    showToast('done', 'Well done! 🎉 أحسنت!', esc(task.text), 0, 4000);
-    note('🎉', `Well done! Finished task: ${task.text}`);
+    showToast('done', '🎉 Amazing! 🎉 Well done!', esc(task.text), 0, 4000);
+    note('🎉', `🎉 Well done! Finished task: ${task.text}`);
 
-    // 4. Character scene
+    // 4. Character scene with enhanced celebration
     window.playScene?.({
-      who: 'Yovy', props: [], arms: 'fold', tone: 'gold', badge: '🎉 Well Done!',
-      title: 'Well done! 🎉', sub: `أنجزت المهمة: <b>${esc(task.text)}</b>`, ms: 4000,
+      who: 'Yovy', props: [], arms: 'fold', tone: 'gold', badge: '🎉 Amazing! 🎉',
+      title: '🎉 Amazing! 🎉', sub: `You completed the task: <b>${esc(task.text)}</b>`, ms: 4000,
     });
 
     render();
@@ -317,7 +392,7 @@
     task.fired = false;
     task.lastRemind = 0;
     saveTasks();
-    showToast('done', 'تمت استعادة المهمة', esc(task.text), 0, 2500);
+    showToast('done', 'Task restored', esc(task.text), 0, 2500);
     render();
     tick();
   }
@@ -349,9 +424,9 @@
     const active = tasks.filter((t) => !t.completed && Number.isFinite(t.dueTime));
 
     if (badgeActiveCount) badgeActiveCount.textContent = active.length;
-    if (statsEl) statsEl.textContent = `${active.length} مهام نشطة`;
+    if (statsEl) statsEl.textContent = `${active.length} active tasks`;
     if (pendingSummaryEl) {
-      pendingSummaryEl.textContent = `${active.length} ${active.length === 1 ? 'مهمة متبقية' : 'مهام متبقية'}`;
+      pendingSummaryEl.textContent = `${active.length} ${active.length === 1 ? 'task remaining' : 'tasks remaining'}`;
     }
     badgeEl?.classList.toggle('on', active.length > 0);
     if (emptyActiveEl) emptyActiveEl.hidden = active.length > 0;
@@ -365,10 +440,10 @@
     const later = active.filter((t) => !isToday(t.dueTime) && !isTomorrow(t.dueTime) && t.dueTime > now).sort((a, b) => a.dueTime - b.dueTime);
 
     const groups = [
-      { key: 'overdue', label: '⚠️ حان موعدها! (اضغط إنهاء)', items: overdue, isOverdue: true },
-      { key: 'today', label: '📅 مهام اليوم', items: today },
-      { key: 'tomorrow', label: '🌅 مهام غداً', items: tomorrow },
-      { key: 'later', label: '🗓️ مهام قادمة', items: later },
+      { key: 'overdue', label: '⚠️ Due now! (Click finish)', items: overdue, isOverdue: true },
+      { key: 'today', label: '📅 Today\'s tasks', items: today },
+      { key: 'tomorrow', label: '🌅 Tomorrow\'s tasks', items: tomorrow },
+      { key: 'later', label: '🗓️ Upcoming tasks', items: later },
     ].filter((g) => g.items.length > 0);
 
     const showGroupHeaders = groups.length > 1;
@@ -389,13 +464,13 @@
         const msLeft = t.dueTime - now;
         let badgeHtml = '';
         if (isPast) {
-          badgeHtml = `<span class="task-badge alert">⚠️ متأخر ${shortLeft(now - t.dueTime)}</span>`;
+          badgeHtml = `<span class="task-badge alert">⚠️ Overdue ${shortLeft(now - t.dueTime)}</span>`;
         } else {
           badgeHtml = `<span class="task-badge pending" dir="ltr">${shortLeft(msLeft)}</span>`;
         }
 
         row.innerHTML = `
-          <button class="task-check-circle" title="إنهاء المهمة">
+          <button class="task-check-circle" title="Finish task">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>
           </button>
           <div class="task-info">
@@ -404,10 +479,10 @@
           </div>
           <div class="task-trailing">
             ${badgeHtml}
-            <button class="task-finish-btn" title="إنهاء المهمة وإضافتها للجدول">
-              <span>إنهاء 🎉</span>
+            <button class="task-finish-btn" title="Finish task and add to table">
+              <span>Finish 🎉</span>
             </button>
-            <button class="task-del" title="حذف المهمة">
+            <button class="task-del" title="Delete task">
               <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
           </div>
@@ -428,7 +503,7 @@
     const finished = tasks.filter((t) => t.completed).sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
     if (badgeFinishedCount) badgeFinishedCount.textContent = finished.length;
-    if (doneSummaryEl) doneSummaryEl.textContent = `${finished.length} مهمة مكتملة`;
+    if (doneSummaryEl) doneSummaryEl.textContent = `${finished.length} completed tasks`;
     if (emptyDoneEl) emptyDoneEl.hidden = finished.length > 0;
 
     for (const t of finished) {
@@ -440,8 +515,8 @@
         <td class="td-time">${formatDateTime(t.finishedAt)}</td>
         <td class="td-status"><span class="badge-done">Well done 🎉</span></td>
         <td class="td-actions">
-          <button class="btn-action-restore" title="استعادة إلى قائمة المهام">↺</button>
-          <button class="btn-action-del" title="حذف نهائي">✕</button>
+          <button class="btn-action-restore" title="Restore to task list">↺</button>
+          <button class="btn-action-del" title="Delete permanently">✕</button>
         </td>
       `;
 
@@ -462,7 +537,9 @@
       for (const t of active) {
         if (now >= t.dueTime) {
           const needsInitial = !t.fired;
-          const needsRepeat = !needsInitial && (now - (t.lastRemind || 0) >= RE_REMIND_MS);
+          // Use per-task interval if set, otherwise use global setting
+          const taskRemindInterval = t.remindInterval || getRemindInterval();
+          const needsRepeat = !needsInitial && (now - (t.lastRemind || 0) >= taskRemindInterval);
 
           if (needsInitial || needsRepeat) {
             t.fired = true;
@@ -472,9 +549,9 @@
             if (alertsOn && feat('taskAlerts')) {
               playTones([[0, 523], [0.15, 659], [0.3, 784], [0.45, 1046]], { peak: 0.22, attack: 0.02, decay: 1.2 });
               island.classList.add('task-alert');
-              showToast('task-alert', t.text, needsInitial ? 'حان الموعد!' : 'تذكير بمهمة مستحقة', 0, 8000);
+              showToast('task-alert', t.text, needsInitial ? 'Due now!' : 'Task reminder', 0, 8000);
               setTimeout(() => island.classList.remove('task-alert'), 8200);
-              note('⏰', `تذكير بمهمة: ${t.text}`);
+              note('⏰', `Task reminder: ${t.text}`);
             }
             renderActiveList();
           }
@@ -489,22 +566,22 @@
       if (overdue.length > 0) {
         const topOverdue = overdue[0];
         if (eyebrowEl) {
-          eyebrowEl.textContent = overdue.length > 1 ? `⚠️ متأخرة (${overdue.length} مهام)` : '⚠️ حان الموعد!';
+          eyebrowEl.textContent = overdue.length > 1 ? `⚠️ Overdue (${overdue.length} tasks)` : '⚠️ Due now!';
           eyebrowEl.classList.add('alert');
         }
-        if (nextNameEl) nextNameEl.textContent = topOverdue.text || 'مهمة';
+        if (nextNameEl) nextNameEl.textContent = topOverdue.text || 'Task';
         if (nextCountEl) {
-          nextCountEl.textContent = 'اضغط إنهاء 🎉';
+          nextCountEl.textContent = 'Click finish 🎉';
           nextCountEl.classList.add('alert');
         }
-        if (nextTimeEl) nextTimeEl.textContent = `الموعد: ${formatDue(topOverdue.dueTime)}`;
+        if (nextTimeEl) nextTimeEl.textContent = `Due: ${formatDue(topOverdue.dueTime)}`;
       } else if (upcoming.length > 0) {
         const nextUp = upcoming[0];
         if (eyebrowEl) {
-          eyebrowEl.textContent = 'التذكير القادم';
+          eyebrowEl.textContent = 'Next reminder';
           eyebrowEl.classList.remove('alert');
         }
-        if (nextNameEl) nextNameEl.textContent = nextUp.text || 'مهمة';
+        if (nextNameEl) nextNameEl.textContent = nextUp.text || 'Task';
         if (nextCountEl) {
           nextCountEl.textContent = left(nextUp.dueTime - now);
           nextCountEl.classList.remove('alert');
@@ -512,15 +589,15 @@
         if (nextTimeEl) nextTimeEl.textContent = formatDue(nextUp.dueTime);
       } else {
         if (eyebrowEl) {
-          eyebrowEl.textContent = 'التذكير القادم';
+          eyebrowEl.textContent = 'Next reminder';
           eyebrowEl.classList.remove('alert');
         }
-        if (nextNameEl) nextNameEl.textContent = 'لا توجد مهام نشطة';
+        if (nextNameEl) nextNameEl.textContent = 'No active tasks';
         if (nextCountEl) {
           nextCountEl.textContent = '--:--:--';
           nextCountEl.classList.remove('alert');
         }
-        if (nextTimeEl) nextTimeEl.textContent = 'أضف مهمة وحدد موعدها';
+        if (nextTimeEl) nextTimeEl.textContent = 'Add a task and set its time';
       }
 
       // Carousel Slide ("corssol") - smoothly shows the task and how much is left
@@ -532,13 +609,13 @@
 
           if (overdue.length > 0) {
             const top = overdue[0];
-            if (slideTitle) slideTitle.textContent = top.text || 'مهمة';
-            if (slideStatus) slideStatus.textContent = 'متأخر';
-            if (slideLeft) slideLeft.textContent = `حان الموعد!${multi}`;
+            if (slideTitle) slideTitle.textContent = top.text || 'Task';
+            if (slideStatus) slideStatus.textContent = 'Overdue';
+            if (slideLeft) slideLeft.textContent = `Due now!${multi}`;
           } else if (upcoming.length > 0) {
             const next = upcoming[0];
-            if (slideTitle) slideTitle.textContent = next.text || 'مهمة';
-            if (slideStatus) slideStatus.textContent = 'باقي';
+            if (slideTitle) slideTitle.textContent = next.text || 'Task';
+            if (slideStatus) slideStatus.textContent = 'Remaining';
             if (slideLeft) slideLeft.textContent = `${shortLeft(next.dueTime - now)}${multi}`;
           }
         } else {
@@ -552,7 +629,7 @@
           vTaskItem.hidden = false;
           const top = overdue[0] || upcoming[0];
           if (vTaskName) vTaskName.textContent = top ? top.text : '';
-          if (vTaskLeft) vTaskLeft.textContent = overdue.length > 0 ? 'متأخر' : shortLeft(top.dueTime - now);
+          if (vTaskLeft) vTaskLeft.textContent = overdue.length > 0 ? 'Overdue' : shortLeft(top.dueTime - now);
         } else {
           vTaskItem.hidden = true;
         }

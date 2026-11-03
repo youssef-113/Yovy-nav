@@ -6,7 +6,7 @@
 
 Your music, apps, files and alerts in one glass capsule at the top of your screen — with Yovy, a little companion who keeps you company.
 
-[**Download for Windows (v1.3.4)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
+[**Download for Windows (v1.3.6)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
 
 [![Latest release](https://img.shields.io/github/v/release/youssef-113/Yovy-nav?style=for-the-badge&label=Version&color=3b82f6&labelColor=1c1a2e)](https://github.com/youssef-113/Yovy-nav/releases/latest)
 [![Stars](https://img.shields.io/github/stars/youssef-113/Yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](https://github.com/youssef-113/Yovy-nav/stargazers)
@@ -38,7 +38,16 @@ Prayer times with a heads-up before the adhan, plus dhikr, du'a and Qur'an verse
 
 ### Task Reminders & To-Do List
 
-Schedule tasks with custom dates and times right from the island shortcuts. Features quick presets (`+10m`, `+30m`, `+1h`, `Tomorrow`), live countdowns on the idle pill, persistent audio/toast alerts when overdue until finished, and a celebratory "Well done! 🎉" toast that moves finished tasks into a dedicated table.
+Schedule tasks with custom dates and times right from the island shortcuts. Features:
+- **12-hour time format** with easy dropdown selection (30-minute increments)
+- **Quick presets** (`+10m`, `+30m`, `+1h`, `+3h`, `Today`, `Tomorrow`)
+- **Configurable reminder intervals** - set how often to be reminded (1 min to 1 hour) globally or per-task
+- **Flexible per-task settings** - override global reminder frequency for specific tasks
+- **Live countdowns** on the idle pill showing time remaining
+- **Persistent audio/toast alerts** when overdue until finished
+- **Enhanced celebration** with multi-wave sparkles and uplifting sounds when completing tasks
+- **Finished tasks table** with celebratory "Well done! 🎉" messages
+- **Edit tasks** directly from the Settings window
 
 ### Downloads, at a glance
 
@@ -64,12 +73,12 @@ Turn on only what you need from one simple settings window. Vertical on the scre
 
 ## Install on Windows
 
-1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.4.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
+1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.3.6.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not code-signed yet — choose **More info → Run anyway**.
 3. The island appears at the top of your screen. Press **Ctrl + Alt + I** to open it.
 
 ### Download Links
-- **Latest Release (v1.3.4)**: [Download YOVY-NAV-Setup-1.3.4.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.3.4/YOVY-NAV-Setup-1.3.4.exe)
+- **Latest Release (v1.3.6)**: [Download YOVY-NAV-Setup-1.3.6.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.3.6/YOVY-NAV-Setup-1.3.6.exe)
 - **All Releases**: [GitHub Releases Page](https://github.com/youssef-113/Yovy-nav/releases)
 - **Tags & Source Code Archive**: [GitHub Tags Archive](https://github.com/youssef-113/Yovy-nav/tags)
 

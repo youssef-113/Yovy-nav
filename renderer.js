@@ -40,20 +40,21 @@ function celebrate(colors = ['#ffd479', '#30d158', '#8ab4ff', '#ff6b9d']) {
   const r = island.getBoundingClientRect();
   const cx = r.left + r.width / 2;
   const cy = r.top + r.height / 2;
-  for (let i = 0; i < 18; i++) {
-    const a = (Math.PI * 2 * i) / 18 + Math.random() * 0.3;
+  // Increased particle count for more celebration
+  for (let i = 0; i < 28; i++) {
+    const a = (Math.PI * 2 * i) / 28 + Math.random() * 0.3;
     // start on the pill's outline, fly outward
     const sx = cx + Math.cos(a) * r.width / 2;
     const sy = cy + Math.sin(a) * r.height / 2;
-    const dist = 18 + Math.random() * 34;
+    const dist = 25 + Math.random() * 45;
     const p = document.createElement('i');
     p.className = 'spark';
-    p.style.cssText = `left:${sx}px;top:${sy}px;background:${colors[i % colors.length]};--s:${(3 + Math.random() * 3).toFixed(1)}px`;
+    p.style.cssText = `left:${sx}px;top:${sy}px;background:${colors[i % colors.length]};--s:${(3 + Math.random() * 4).toFixed(1)}px`;
     document.body.append(p);
     p.animate([
       { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
       { transform: `translate(calc(-50% + ${Math.cos(a) * dist}px), calc(-50% + ${Math.sin(a) * dist}px)) scale(.2)`, opacity: 0 },
-    ], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => p.remove();
+    ], { duration: 800 + Math.random() * 500, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => p.remove();
   }
 }
 

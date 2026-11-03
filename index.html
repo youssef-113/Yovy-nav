@@ -430,11 +430,11 @@
               <div class="task-view-nav">
                 <button class="task-nav-tab active" id="task-tab-active-btn" type="button">
                   <svg class="s" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                  <span>المهام النشطة</span>
+                  <span>ِActive tasks</span>
                   <span class="task-nav-badge" id="badge-active-count">0</span>
                 </button>
                 <button class="task-nav-tab" id="task-tab-finished-btn" type="button">
-                  <span>المكتملة 🎉</span>
+                  <span>Completed Tasks</span>
                   <span class="task-nav-badge done" id="badge-finished-count">0</span>
                 </button>
               </div>
@@ -443,23 +443,38 @@
               <div class="task-pane active" id="task-pane-active">
                 <div class="card task-input-box">
                   <div class="task-input-row">
-                    <input type="text" id="task-input-text" placeholder="اكتب اسم المهمة والتذكير..." autocomplete="off" maxlength="80">
+                    <input type="text" id="task-input-text" placeholder="Enter task name..." autocomplete="off" maxlength="80">
                     <div class="task-day-pills">
-                      <button type="button" class="task-day-pill active" id="task-day-today">اليوم</button>
-                      <button type="button" class="task-day-pill" id="task-day-tomorrow">غداً</button>
+                      <button type="button" class="task-day-pill active" id="task-day-today">Today</button>
+                      <button type="button" class="task-day-pill" id="task-day-tomorrow">Tomorrow</button>
                     </div>
-                    <input type="text" id="task-input-time" placeholder="14:30" maxlength="5" title="موعد المهمة بالساعات والدقائق">
-                    <button id="task-add-btn" class="pill small primary" title="إضافة مهمة">
+                    <select id="task-input-time" title="Task time (12-hour with AM/PM)">
+                      <option value="">--:--</option>
+                    </select>
+                    <select id="task-input-remind" title="Reminder frequency">
+                      <option value="default">Auto</option>
+                      <option value="1">Every 1 min</option>
+                      <option value="2">Every 2 min</option>
+                      <option value="3">Every 3 min</option>
+                      <option value="5">Every 5 min</option>
+                      <option value="10">Every 10 min</option>
+                      <option value="15">Every 15 min</option>
+                      <option value="20">Every 20 min</option>
+                      <option value="30">Every 30 min</option>
+                      <option value="45">Every 45 min</option>
+                      <option value="60">Every 1 hour</option>
+                    </select>
+                    <button id="task-add-btn" class="pill small primary" title="Add task">
                       <svg class="s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                      <span>إضافة</span>
+                      <span>Add</span>
                     </button>
                   </div>
                   <div class="task-presets-row">
-                    <span class="preset-label">وقت سريع:</span>
-                    <button class="task-preset" data-add-min="10" type="button">+10د</button>
-                    <button class="task-preset" data-add-min="30" type="button">+30د</button>
-                    <button class="task-preset" data-add-min="60" type="button">+1س</button>
-                    <button class="task-preset" data-add-min="180" type="button">+3س</button>
+                    <span class="preset-label">Quick time:</span>
+                    <button class="task-preset" data-add-min="10" type="button">+10m</button>
+                    <button class="task-preset" data-add-min="30" type="button">+30m</button>
+                    <button class="task-preset" data-add-min="60" type="button">+1h</button>
+                    <button class="task-preset" data-add-min="180" type="button">+3h</button>
                   </div>
                 </div>
 

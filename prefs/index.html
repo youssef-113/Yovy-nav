@@ -28,6 +28,7 @@
       <a href="#island" data-page="island"><svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="4"/></svg>Island</a>
       <a href="#companion" data-page="companion"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>Companion</a>
       <a href="#faith" data-page="faith"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Prayer &amp; Dhikr</a>
+      <a href="#tasks" data-page="tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a>
       <a href="#alerts" data-page="alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Alerts &amp; Privacy</a>
       <a href="#connections" data-page="connections"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Connections</a>
       <p class="side-foot"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> opens the island<br><span id="version"></span></p>
@@ -174,6 +175,47 @@
             </div>
           </div>
           <div class="actions"><button class="btn accent" id="rm-preview">Show one now</button></div>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section id="tasks" class="page">
+        <h1>Tasks</h1>
+        <div class="group">
+          <h2>Task Management</h2>
+          <div class="card">
+            <div class="task-input-row">
+              <input type="text" id="prefs-task-text" placeholder="Task name..." maxlength="80">
+              <select id="prefs-task-time">
+                <option value="">--:--</option>
+              </select>
+              <select id="prefs-task-remind">
+                <option value="default">Auto</option>
+                <option value="1">Every 1 min</option>
+                <option value="2">Every 2 min</option>
+                <option value="3">Every 3 min</option>
+                <option value="5">Every 5 min</option>
+                <option value="10">Every 10 min</option>
+                <option value="15">Every 15 min</option>
+                <option value="20">Every 20 min</option>
+                <option value="30">Every 30 min</option>
+                <option value="45">Every 45 min</option>
+                <option value="60">Every 1 hour</option>
+              </select>
+              <button class="btn" id="prefs-task-add">Add</button>
+            </div>
+            <div class="task-list" id="prefs-task-list"></div>
+            <div class="task-empty" id="prefs-task-empty">No tasks yet</div>
+          </div>
+        </div>
+        <div class="group">
+          <h2>Reminder Settings</h2>
+          <div class="card">
+            <label class="row"><b>Task alerts</b><input type="checkbox" class="sw" data-feature="taskAlerts"></label>
+            <div class="row sub" data-needs="taskAlerts"><b>Repeat reminders every</b>
+              <div class="stepper" data-num="taskRemindEvery" data-steps="1,2,3,5,10,15,20,30,45,60" data-unit="min"><button data-dir="-1" aria-label="Less">−</button><output></output><button data-dir="1" aria-label="More">+</button></div>
+            </div>
+          </div>
         </div>
       </section>
 

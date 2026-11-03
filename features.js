@@ -27,6 +27,7 @@ const DEFAULTS = {
   battery: true,
   prayerAlerts: true,
   taskAlerts: true,
+  taskRemindEvery: 5, // minutes between repeat reminders for overdue tasks
   asrHanafi: false, // Asr by the Hanafi shadow rule
   hijriAdjust: 0, // days added to the Hijri date (local moon sighting)
   // IDM Yovy
@@ -78,6 +79,7 @@ const DEFAULTS = {
 const RANGES = {
   remindEvery: [1, 240], remindFor: [5, 300], quietFrom: [0, 1439], quietTo: [0, 1439],
   focusMin: [5, 120], breakMin: [1, 60], longBreakMin: [5, 60], hijriAdjust: [-2, 2], waterEvery: [15, 240], waterGoal: [4, 16],
+  taskRemindEvery: [1, 60],
 };
 
 let values = { ...DEFAULTS, ...pick(settings.load('features.json', {})) };

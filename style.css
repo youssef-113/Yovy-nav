@@ -937,7 +937,7 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 .eyes.blink .eye { height: 2px; }
 
 /* ============ celebration sparkles ============ */
-.spark { position: fixed; z-index: 50; width: var(--s, 4px); height: var(--s, 4px); border-radius: 50%; pointer-events: none; box-shadow: 0 0 8px currentColor; }
+.spark { position: fixed; z-index: 50; width: var(--s, 4px); height: var(--s, 4px); border-radius: 50%; pointer-events: none; box-shadow: 0 0 12px currentColor, 0 0 20px currentColor; }
 
 /* ============ scenes: the island becomes a character ============ */
 #island.scene { --w: 64px; --h: 66px; --r: 28px; }
@@ -1052,14 +1052,16 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 .task-pane { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; min-height: 0; }
 .task-pane[hidden] { display: none !important; }
 .task-input-box { padding: 6px 9px; display: flex; flex-direction: column; gap: 5px; }
-.task-input-row { display: flex; align-items: center; gap: 5px; }
+.task-input-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 #task-input-text { flex: 1; min-width: 0; height: 27px; background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 255, 255, .08); border-radius: 8px; padding: 0 9px; color: var(--text-1); font-size: 11.5px; outline: none; transition: border-color var(--dur-fast); }
 #task-input-text:focus { border-color: rgba(255, 159, 10, .55); background: rgba(0, 0, 0, .4); }
 .task-day-pills { display: flex; gap: 3px; flex: none; }
 .task-day-pill { height: 27px; padding: 0 8px; border-radius: 6px; background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 255, 255, .08); color: var(--text-2); font-size: 11px; cursor: pointer; transition: all .15s; }
 .task-day-pill.active { background: rgba(255, 159, 10, .22); border-color: rgba(255, 159, 10, .55); color: #ff9f0a; font-weight: 600; }
-#task-input-time { width: 56px; height: 27px; background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 255, 255, .08); border-radius: 8px; padding: 0 4px; color: var(--text-1); font-size: 11px; outline: none; font-variant-numeric: tabular-nums; text-align: center; }
-#task-input-time:focus { border-color: rgba(255, 159, 10, .55); }
+#task-input-time { width: 80px; height: 27px; background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 255, 255, .08); border-radius: 8px; padding: 0 20px 0 4px; color: var(--text-1); font-size: 11px; outline: none; font-variant-numeric: tabular-nums; text-align: center; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 1l5 4 5-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 6px center; background-size: 10px 6px; }
+#task-input-remind { width: 75px; height: 27px; background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 255, 255, .08); border-radius: 8px; padding: 0 20px 0 4px; color: var(--text-1); font-size: 10px; outline: none; font-variant-numeric: tabular-nums; text-align: center; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 1l5 4 5-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 6px center; background-size: 10px 6px; }
+#task-input-time:focus, #task-input-remind:focus { border-color: rgba(255, 159, 10, .55); }
+#task-input-time option, #task-input-remind option { background: #1a1a20; color: var(--text-1); }
 #task-add-btn { height: 27px; padding: 0 9px; gap: 3px; display: flex; align-items: center; font-size: 11.5px; flex: none; }
 #task-add-btn svg { width: 13px; height: 13px; }
 .task-presets-row { display: flex; align-items: center; gap: 4px; font-size: 10.5px; }

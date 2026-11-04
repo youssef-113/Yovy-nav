@@ -16,3 +16,4 @@
   ; Remove startup shortcut if present
   Delete "$SMSTARTUP\YOVY-NAV.lnk"
 !macroend
+

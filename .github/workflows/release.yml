@@ -43,4 +43,5 @@ jobs:
           files: |
             dist/*.exe
             dist/*.blockmap
+            dist/*.zip
           generate_release_notes: true

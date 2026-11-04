@@ -44,7 +44,9 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "portable",
+        "zip"
       ],
       "icon": "build/icon.ico",
       "executableName": "YOVY-NAV"
@@ -61,7 +63,8 @@
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "runAfterFinish": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
     },
     "portable": {
       "artifactName": "YOVY-NAV-${version}-portable.exe"

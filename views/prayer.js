@@ -117,7 +117,7 @@
           who: 'Yovy', props: ['cap', 'rug'], arms: 'fold', tone: 'gold', badge: '☾ الأذان', lang: 'ar',
           title: 'أَقِمْ صَلَاتَكَ', quran: true,
           sub: `حان الآن وقت صلاة <b>${NAMES[k]}</b><bdi dir="ltr">${clock(t)}</bdi>${iftar}`,
-          ms: 45000,
+          ms: 10000,
         });
         if (!shown) {
           island.classList.add('prayer-alert');

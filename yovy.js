@@ -1,5 +1,5 @@
 const {
-  app, BrowserWindow, screen, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, shell,
+  app, BrowserWindow, screen, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, shell, powerMonitor,
 } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -29,6 +29,8 @@ const updater = require('./updater');
 // Keep our own windows (the mini player) out of Windows' media sessions, so the island and
 // the per-app commands keep targeting the browser tab rather than the mini player.
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
 
 const WIN_W = 680;
 const WIN_H = 360;
@@ -351,6 +353,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      spellcheck: false,
+      backgroundThrottling: false,
     },
   });
   win.setAlwaysOnTop(true, 'screen-saver');
@@ -393,7 +397,21 @@ function bridgeStatus() {
 }
 
 function startMedia() {
-  media = spawn(HELPER(), [], { windowsHide: true });
+  const helperPath = HELPER();
+  if (!fs.existsSync(helperPath)) {
+    console.warn('[media] helper executable not found:', helperPath);
+    bridge.state = 'failed';
+    bridge.detail = 'Helper binary not found';
+    return;
+  }
+  try {
+    media = spawn(helperPath, [], { windowsHide: true });
+  } catch (err) {
+    console.error('[media] failed to spawn helper:', err.message);
+    bridge.state = 'failed';
+    bridge.detail = err.message;
+    return;
+  }
   let buffer = '';
   media.on('error', (err) => {
     console.error('[media] failed to start:', err.message);
@@ -567,8 +585,8 @@ ipcMain.handle('mini-open', async (_e, req) => {
 // island at low resolution and let the renderer blur it.
 // The backdrop is re-captured often while the island is open or changing shape, rarely while
 // it sits collapsed, and not at all while hidden; an unchanged picture is not re-sent.
-const CAPTURE_ACTIVE_MS = 700;
-const CAPTURE_IDLE_MS = 3000;
+const CAPTURE_ACTIVE_MS = 4000;
+const CAPTURE_IDLE_MS = 30000;
 let capturing = false;
 let captureTimer = null;
 let lastCaptureKey = '';
@@ -576,13 +594,13 @@ let busyUntil = 0; // shape changed recently
 function scheduleCapture(ms) {
   clearTimeout(captureTimer);
   captureTimer = setTimeout(async () => {
-    await captureBackdrop();
-    scheduleCapture(active || Date.now() < busyUntil ? CAPTURE_ACTIVE_MS : CAPTURE_IDLE_MS);
+    if (active) await captureBackdrop();
+    scheduleCapture(active ? CAPTURE_ACTIVE_MS : CAPTURE_IDLE_MS);
   }, ms);
 }
 async function captureBackdrop() {
-  // skipped while dragging: a capture blocks the main thread and makes the move stutter
-  if (capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
+  // Only capture when actively hovered/expanded; skipped while idle, dragging or hidden
+  if (!active || capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
   capturing = true;
   try {
     const display = screen.getDisplayMatching(win.getBounds());
@@ -631,14 +649,40 @@ let inside = false;
 let active = false;
 let enteredAt = 0;
 let suppressUntilLeave = false;
+let isAlertMode = false;
 
 ipcMain.on('island-rect', (_e, r) => {
   const resized = r.width !== islandRect.width || r.height !== islandRect.height;
   islandRect = r;
+  isAlertMode = !!r.alert;
   if (resized) {
-    busyUntil = Date.now() + 2000;
-    scheduleCapture(120);
+    busyUntil = Date.now() + 1000;
   }
+  // Immediately activate pointer events if an alert/notification appeared and mouse is over it
+  if (isAlertMode && !suppressUntilLeave && win && !win.isDestroyed()) {
+    try {
+      const p = screen.getCursorScreenPoint();
+      const b = win.getBounds();
+      const x = p.x - b.x;
+      const y = p.y - b.y;
+      const pad = 4;
+      const isInsideNow =
+        x >= islandRect.x - pad &&
+        x <= islandRect.x + islandRect.width + pad &&
+        y >= islandRect.y - pad &&
+        y <= islandRect.y + islandRect.height + pad;
+      if (isInsideNow) {
+        inside = true;
+        setActive(true);
+      }
+    } catch {}
+  }
+});
+
+ipcMain.on('suppress-hover', () => {
+  suppressUntilLeave = true;
+  setActive(false);
+  send('hover', false);
 });
 
 function setActive(on) {
@@ -663,7 +707,7 @@ function sendNear(x, y) {
     nearSent = null;
     return;
   }
-  if (nearSent && Math.abs(nearSent.dx - dx) < 3 && Math.abs(nearSent.dy - dy) < 3) return;
+  if (nearSent && Math.abs(nearSent.dx - dx) < 6 && Math.abs(nearSent.dy - dy) < 6) return;
   nearSent = { dx, dy };
   send('near', nearSent);
 }
@@ -686,8 +730,11 @@ function pollCursor() {
   if (!now) {
     suppressUntilLeave = false;
     setActive(false);
-  } else if (!active && !suppressUntilLeave && Date.now() - enteredAt >= HOVER_INTENT_MS) {
-    setActive(true);
+  } else if (!active && !suppressUntilLeave) {
+    const delay = isAlertMode ? 0 : HOVER_INTENT_MS;
+    if (Date.now() - enteredAt >= delay) {
+      setActive(true);
+    }
   }
 }
 
@@ -858,6 +905,8 @@ ipcMain.handle('features-get', () => features.get());
 ipcMain.on('features-set', (_e, patch) => features.set(patch));
 ipcMain.on('features-reset', () => features.reset());
 ipcMain.on('reminder-preview', () => send('reminder-now'));
+ipcMain.on('greeting-preview', () => send('greeting-now'));
+ipcMain.on('cheer-preview', () => send('cheer-now'));
 ipcMain.handle('general-get', () => generalState());
 // Settings > Support: the page names a link, main holds the addresses
 const SUPPORT_LINKS = {
@@ -1041,9 +1090,36 @@ app.whenReady().then(() => {
     prefsWindow.send(ch, data);
   });
   apps.init(async () => send('apps', await apps.list()));
-  setInterval(pollCursor, 40);
+  setInterval(pollCursor, 60);
   scheduleCapture(300);
   globalShortcut.register('CommandOrControl+Alt+I', () => send('toggle'));
+
+  let sleepTime = 0;
+  if (powerMonitor) {
+    powerMonitor.on('suspend', () => {
+      sleepTime = Date.now();
+      send('power-sleep', { event: 'suspend', time: sleepTime });
+    });
+    powerMonitor.on('lock-screen', () => {
+      if (!sleepTime) sleepTime = Date.now();
+      send('power-sleep', { event: 'lock-screen', time: sleepTime });
+    });
+    powerMonitor.on('screen-off', () => {
+      if (!sleepTime) sleepTime = Date.now();
+      send('power-sleep', { event: 'screen-off', time: sleepTime });
+    });
+
+    const onWake = (evt) => {
+      const now = Date.now();
+      const awayMs = sleepTime ? Math.max(0, now - sleepTime) : 0;
+      sleepTime = 0;
+      send('power-wake', { event: evt, time: now, awayMs });
+    };
+
+    powerMonitor.on('resume', () => onWake('resume'));
+    powerMonitor.on('unlock-screen', () => onWake('unlock-screen'));
+    powerMonitor.on('screen-on', () => onWake('screen-on'));
+  }
   const onDisplayChange = () => {
     layout();
     savePosition();

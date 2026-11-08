@@ -117,12 +117,12 @@
           who: 'Yovy', props: ['cap', 'rug'], arms: 'fold', tone: 'gold', badge: '☾ الأذان', lang: 'ar',
           title: 'أَقِمْ صَلَاتَكَ', quran: true,
           sub: `حان الآن وقت صلاة <b>${NAMES[k]}</b><bdi dir="ltr">${clock(t)}</bdi>${iftar}`,
-          ms: 10000,
+          ms: 7000,
         });
         if (!shown) {
           island.classList.add('prayer-alert');
-          showToast('prayer', `حان الآن موعد صلاة ${NAMES[k]}`, clock(t), 0, 9000);
-          setTimeout(() => island.classList.remove('prayer-alert'), 9200);
+          showToast('prayer', `حان الآن موعد صلاة ${NAMES[k]}`, clock(t), 0, 6000);
+          setTimeout(() => island.classList.remove('prayer-alert'), 6200);
         }
       } else if (diff > 0 && diff <= SOON_MIN * 60000 && diff > (SOON_MIN - 1) * 60000 && !fired.has(`${id}-soon`)) {
         fired.add(`${id}-soon`);

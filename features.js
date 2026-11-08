@@ -44,8 +44,10 @@ const DEFAULTS = {
   // mic / camera in use
   privacyDots: true,
   // companion
+  userName: '',
   netToasts: true,
   welcomeBack: true,
+  hourlyCheer: true, // hourly encouraging boost
   morningBrief: true,
   wellbeing: true,
   smartClipboard: true,
@@ -93,6 +95,7 @@ function pick(obj) {
     if (RANGES[k]) {
       if (Number.isFinite(v)) out[k] = Math.min(Math.max(Math.round(v), RANGES[k][0]), RANGES[k][1]);
     } else if (typeof v === 'boolean') out[k] = v;
+    else if (typeof v === 'string') out[k] = v.trim().slice(0, 40);
   }
   return out;
 }

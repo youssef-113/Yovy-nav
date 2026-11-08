@@ -764,9 +764,36 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
   background: rgba(var(--rm-rgb), .14); color: rgb(var(--rm-rgb)); font-size: 12px; font-weight: 600;
 }
 .rm-badge svg { width: 12px; height: 12px; }
-.rm-x { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: var(--text-3); transition: background var(--dur-fast), color var(--dur-fast); }
-.rm-x svg { width: 12px; height: 12px; stroke-width: 2.4; }
-.rm-x:hover { background: var(--fill-1); color: var(--text-1); }
+.rm-x {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  cursor: pointer;
+  z-index: 50;
+  background: rgba(255, 255, 255, .08);
+  border: none;
+  outline: none;
+  padding: 0;
+  flex: none;
+  transition: background var(--dur-fast), color var(--dur-fast), transform .15s ease;
+}
+.rm-x svg {
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.6;
+}
+.rm-x:hover {
+  background: rgba(255, 255, 255, .20);
+  color: #fff;
+}
+.rm-x:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, .28);
+}
 .rm-text {
   flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
   font-family: "Yovy Quran", "Sakkal Majalla", "Traditional Arabic", "Segoe UI", sans-serif; font-size: var(--rm-fs, 26px);
@@ -904,6 +931,7 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 .l-reminder.brief { --rm-rgb: 255, 196, 92; }
 .l-reminder.welcome { --rm-rgb: 125, 211, 252; }
 .l-reminder.care { --rm-rgb: 134, 239, 172; }
+.l-reminder.cheer { --rm-rgb: 255, 159, 10; }
 
 /* ============ smart clipboard ============ */
 .t-swatch { display: none; width: 22px; height: 22px; border-radius: 7px; flex: none; background: var(--sw, #888); box-shadow: 0 0 0 1px rgba(255, 255, 255, .3), 0 0 14px var(--sw, transparent); }
@@ -996,13 +1024,42 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
   --sc-rgb: 255, 212, 121;
 }
 .scene-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(80% 90% at 100% 0%, rgba(var(--sc-rgb), .22), transparent 60%); pointer-events: none; }
-.scene-card.on { opacity: 1; transform: none; filter: none; pointer-events: auto; transition: opacity .35s ease .65s, transform .5s var(--spring) .6s, filter .35s ease .65s; }
+.scene-card.on { opacity: 1; transform: none; filter: none; pointer-events: auto; transition: opacity .2s ease, transform .25s var(--spring), filter .2s ease; }
 .scene-card.water { --sc-rgb: 56, 189, 248; }
 .scene-card.focus { --sc-rgb: 255, 107, 107; }
 .sc-badge { position: absolute; top: 12px; inset-inline-start: 18px; height: 22px; padding: 0 10px; border-radius: 99px; display: flex; align-items: center; gap: 5px; background: rgba(var(--sc-rgb), .16); color: rgb(var(--sc-rgb)); font-size: 12px; font-weight: 600; }
-.sc-x { position: absolute; top: 10px; inset-inline-end: 14px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--text-3); }
-.sc-x svg { width: 12px; height: 12px; stroke-width: 2.4; }
-.sc-x:hover { background: var(--fill-1); color: var(--text-1); }
+.sc-x {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  cursor: pointer;
+  z-index: 50;
+  background: rgba(255, 255, 255, .08);
+  border: none;
+  outline: none;
+  padding: 0;
+  transition: background var(--dur-fast), color var(--dur-fast), transform .15s ease;
+}
+.sc-x svg {
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.6;
+}
+.sc-x:hover {
+  background: rgba(255, 255, 255, .20);
+  color: #fff;
+}
+.sc-x:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, .28);
+}
 .sc-title { position: relative; font-size: 24px; font-weight: 700; line-height: 1.3; }
 .sc-title.quran { font-family: "Yovy Quran", serif; font-weight: 400; font-size: 36px; text-shadow: 0 0 18px rgba(var(--sc-rgb), .45); }
 .sc-sub { position: relative; font-size: 14.5px; color: var(--text-2); line-height: 1.5; }

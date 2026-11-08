@@ -8,7 +8,7 @@
   const KIND_FEATURE = { ayah: 'remindAyah', dhikr: 'remindDhikr', dua: 'remindDua' };
   const WIDTH = 500;
   const V_WIDTH = 340; // docked to a side edge
-  const MAX_H = 270;
+  const MAX_H = 315;
 
   const everyMs = () => (state.features.remindEvery || 5) * 60000;
   // quiet hours may wrap past midnight (23:00 -> 07:00)
@@ -72,10 +72,11 @@
     }
     // diacritics and Qur'anic marks (U+064B–065F, U+0670, U+06D6–06ED) add characters but no width
     const len = item.text.replace(/[ً-ٰٟۖ-ۭ]/g, '').length;
-    const fs = len <= 40 ? 30 : len <= 80 ? 26 : 23;
-    const w = anchor.vertical ? V_WIDTH : WIDTH;
-    layer.style.setProperty('--rm-fs', `${fs}px`);
-    measure.style.setProperty('--rm-fs', `${fs}px`);
+    const fs = len <= 40 ? 30 : len <= 80 ? 26 : len <= 140 ? 22 : 18;
+    const w = anchor.vertical ? V_WIDTH : (len > 140 ? 540 : WIDTH);
+    const effectiveFs = anchor.vertical && len > 140 ? 16 : fs;
+    layer.style.setProperty('--rm-fs', `${effectiveFs}px`);
+    measure.style.setProperty('--rm-fs', `${effectiveFs}px`);
     measure.style.width = `${w - 44}px`;
     measure.innerHTML = words(item);
     // padding 12 + head 24 + gaps 12 + ref 16 + bottom 16
@@ -116,13 +117,16 @@
     bar.style.width = '100%';
     render();
     positionIsland();
+    if (typeof reportRect === 'function') reportRect(true);
   }
 
   function hide() {
+    bridge.suppressHover?.();
     state.reminderUntil = 0;
     state.hover = false; // don't spring open under the cursor when the card leaves
     schedule();
     render();
+    if (typeof reportRect === 'function') reportRect(true);
   }
 
   function tick() {
@@ -152,10 +156,31 @@
   }
   setInterval(tick, 250);
 
-  $('#rm-close').addEventListener('click', (e) => {
+  const doCloseRm = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     previewing = false;
     hide();
+  };
+  const rmCloseBtn = $('#rm-close');
+  if (rmCloseBtn) {
+    rmCloseBtn.addEventListener('pointerdown', doCloseRm);
+    rmCloseBtn.addEventListener('click', doCloseRm);
+  }
+
+  // Dismiss on clicking background of the reminder
+  layer.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button, a, input, textarea, #rm-close')) return;
+    previewing = false;
+    hide();
+  });
+
+  // Escape key closes active reminder
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.reminderUntil > Date.now()) {
+      previewing = false;
+      hide();
+    }
   });
 
   // a new interval counts from now

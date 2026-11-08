@@ -386,7 +386,7 @@ static class Program {
       }
 
       try { o.Add("vol", Math.Round(Audio.GetVolume(), 3)).Add("muted", Audio.GetMute()); } catch { }
-      if (brightOk && loop % 4 == 0) bright = Brightness.Get();
+      if (brightOk && loop % 16 == 0) { bright = Brightness.Get(); if (bright < 0) brightOk = false; }
       o.Add("bright", brightOk ? bright : -1);
       try { o.Add("fs", Win.IsFullscreen()); } catch { o.Add("fs", false); }
       try { o.Add("kl", Win.KeyboardLayout()).Add("caps", Win.CapsLock()); } catch { }

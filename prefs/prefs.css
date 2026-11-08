@@ -476,3 +476,25 @@ body.searching .chip.miss { display: none !important; }
 .prefs-task-row.miss {
   display: none;
 }
+
+.row .field-input {
+  width: 170px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  outline: none;
+  background: rgba(0, 0, 0, .3);
+  box-shadow: inset 0 0 0 1px var(--stroke);
+  color: #fff;
+  font-size: 13px;
+  text-align: left;
+  transition: box-shadow .15s, background .15s;
+}
+.row .field-input:focus {
+  background: rgba(0, 0, 0, .45);
+  box-shadow: inset 0 0 0 1px rgba(111, 140, 255, .8);
+}
+.row .field-input::placeholder {
+  color: var(--text-3);
+}

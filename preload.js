@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('Yovy', {
   openSettings: () => ipcRenderer.send('open-settings'),
   ready: () => ipcRenderer.send('island-ready'),
   onReminderNow: on('reminder-now'),
+  onGreetingNow: on('greeting-now'),
+  onCheerNow: on('cheer-now'),
+  onPowerWake: on('power-wake'),
+  onPowerSleep: on('power-sleep'),
   onVisibility: on('visibility'),
   onPrivacy: on('privacy'),
   onCalendar: on('calendar'),
@@ -46,6 +50,7 @@ contextBridge.exposeInMainWorld('Yovy', {
   dragEnd: () => ipcRenderer.send('drag-end'),
 
   setRect: (r) => ipcRenderer.send('island-rect', r),
+  suppressHover: () => ipcRenderer.send('suppress-hover'),
   mediaCmd: (cmd) => ipcRenderer.send('media-cmd', cmd),
   focusInput: (v) => ipcRenderer.send('focus-input', v),
   contextMenu: () => ipcRenderer.send('context-menu'),

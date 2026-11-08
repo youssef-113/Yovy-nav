@@ -23,6 +23,7 @@ function nope(el) {
 function showFeatures(f) {
   features = f;
   $$('[data-feature]').forEach((el) => { el.checked = !!f[el.dataset.feature]; });
+  $$('[data-feature-text]').forEach((el) => { el.value = f[el.dataset.featureText] || ''; });
   // child settings show only while every switch they depend on is on
   $$('[data-needs]').forEach((el) => el.classList.toggle('off', !el.dataset.needs.split(' ').every((k) => f[k])));
   showSteppers();
@@ -85,6 +86,34 @@ $$('.stepper').forEach((st) => st.addEventListener('click', (e) => {
   saved();
 }));
 $('#rm-preview').addEventListener('click', () => api.previewReminder());
+
+// ---- feature text inputs (e.g. userName) ----
+let nameDebounce = null;
+$$('[data-feature-text]').forEach((el) => {
+  const save = () => {
+    clearTimeout(nameDebounce);
+    const key = el.dataset.featureText;
+    const val = el.value.trim();
+    if (features[key] === val) return;
+    features[key] = val;
+    api.setFeatures({ [key]: val });
+    saved();
+  };
+  el.addEventListener('input', () => {
+    clearTimeout(nameDebounce);
+    nameDebounce = setTimeout(save, 500);
+  });
+  el.addEventListener('change', save);
+  el.addEventListener('blur', save);
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      save();
+      el.blur();
+    }
+  });
+});
+$('#greet-preview')?.addEventListener('click', () => api.previewGreeting?.());
+$('#cheer-preview')?.addEventListener('click', () => api.previewCheer?.());
 
 // ---- general (lives in the main process) ----
 function showGeneral(g) {

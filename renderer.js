@@ -35,6 +35,7 @@ const state = {
 const feat = (key) => state.features[key] !== false;
 
 // Good news: sparkles fly out of the island's edges.
+window.celebrate = celebrate;
 function celebrate(colors = ['#ffd479', '#30d158', '#8ab4ff', '#ff6b9d']) {
   if (!feat('celebrate') || anchor.vertical) return;
   const r = island.getBoundingClientRect();
@@ -180,23 +181,36 @@ bridge.onHover((v) => {
 });
 
 let lastRect = '';
-function reportRect() {
+function reportRect(force = false) {
   let r = island.getBoundingClientRect();
   // during a scene the card beside the character must take the mouse too
   if (lastMode === 'scene') {
-    const c = $('#scene-card').getBoundingClientRect();
-    const left = Math.min(r.left, c.left);
-    const top = Math.min(r.top, c.top);
-    r = { left, top, width: Math.max(r.right, c.right) - left, height: Math.max(r.bottom, c.bottom) - top };
+    const cardEl = $('#scene-card');
+    if (cardEl && cardEl.style.display !== 'none') {
+      const c = cardEl.getBoundingClientRect();
+      if (c.width > 0 && c.height > 0) {
+        const left = Math.min(r.left, c.left);
+        const top = Math.min(r.top, c.top);
+        r = { left, top, width: Math.max(r.right, c.right) - left, height: Math.max(r.bottom, c.bottom) - top };
+      }
+    }
   }
-  const rect = { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+  const isAlert = lastMode === 'reminder' || lastMode === 'scene' || lastMode === 'toast';
+  const rect = {
+    x: Math.round(r.left),
+    y: Math.round(r.top),
+    width: Math.round(r.width),
+    height: Math.round(r.height),
+    alert: isAlert,
+  };
   const key = JSON.stringify(rect);
-  if (key !== lastRect) {
+  if (force || key !== lastRect) {
     lastRect = key;
     bridge.setRect(rect);
   }
 }
-setInterval(reportRect, 50);
+window.reportRect = reportRect;
+setInterval(reportRect, 200);
 
 bridge.onToggle(() => {
   state.pinned = !state.pinned;
@@ -245,12 +259,13 @@ island.addEventListener('lostpointercapture', endMove);
 
 // a plain click on the collapsed island opens it (also right after a move)
 island.addEventListener('click', (e) => {
-  if (!justMoved && lastMode === 'toast' && state.toastAction) {
+  if (!justMoved && lastMode === 'toast') {
     const act = state.toastAction;
     state.toastAction = null;
     state.toastUntil = 0;
+    island.classList.remove('prayer-alert');
     render();
-    act();
+    if (act) act();
     return;
   }
   if (justMoved || lastMode === 'expanded' || lastMode === 'reminder' || lastMode === 'scene' || e.target.closest(NO_DRAG)) return;

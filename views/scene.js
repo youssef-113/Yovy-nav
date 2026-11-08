@@ -1,12 +1,6 @@
 // Scenes: for a moment the island itself becomes a character (Yovy, or the Drop) with a card
 // beside it — the adhan, a glass of water, a focus session. The island's own morph (size and
 // place) does the transformation; the skin, face, limbs and props fade in after it.
-//
-//   playScene({ who: 'Yovy' | 'drop', props: ['cap', 'rug', 'band', 'laptop', 'glass'],
-//               arms: 'rest' | 'fold' | 'type' | 'hold', tone: 'gold' | 'water' | 'focus',
-//               badge, title, quran, sub (html), button: { label, onClick }, ms,
-//               lang: 'ar' (right-to-left card; English otherwise),
-//               onClose (closed with × or timed out, not by the button) })
 (() => {
   const card = $('#scene-card');
   const face = $('.sc-face');
@@ -14,9 +8,9 @@
   const PROPS = ['cap', 'rug', 'band', 'laptop', 'glass'];
   let total = 0;
   let current = null;
-  let lastTick = Date.now();
   let hardEndAt = 0;
   let fallbackTimer = null;
+  let blinkTimer = null;
 
   function classes(on, s) {
     island.classList.toggle('sc-Yovy', on && s?.who !== 'drop');
@@ -27,25 +21,36 @@
   }
 
   function end(how = 'closed') {
+    bridge.suppressHover?.();
     if (!current) return;
     if (fallbackTimer) {
       clearTimeout(fallbackTimer);
       fallbackTimer = null;
     }
+    if (blinkTimer) {
+      clearTimeout(blinkTimer);
+      blinkTimer = null;
+    }
     if (how !== 'button') current.onClose?.();
     state.sceneUntil = 0;
     card.classList.remove('on');
-    render();
+    card.style.display = 'none'; // Force hide immediately!
     const s = current;
     current = null;
-    // let the island morph back before the skin and props go
-    setTimeout(() => { if (!current) classes(false, s); }, 420);
+    classes(false, s);
+    // Force reset hover and mode so island does not spring open to 'expanded'
+    state.hover = false;
+    state.pinned = false;
+    island.classList.remove('scene', 'sc-Yovy', 'sc-drop', 'glow-gold');
+    render();
+    if (typeof reportRect === 'function') reportRect(true);
   }
 
   window.playScene = (s) => {
     if (anchor.vertical) return false; // no room beside a side-docked island
     current = s;
     classes(true, s);
+    card.style.display = ''; // Re-enable display
     card.className = `scene-card ${s.tone || 'gold'}`;
     card.lang = s.lang || 'en';
     card.dir = s.lang === 'ar' ? 'rtl' : 'ltr';
@@ -58,29 +63,39 @@
     btn.hidden = !s.button;
     if (s.button) btn.textContent = s.button.label;
 
-    total = s.ms || 8000;
+    total = Math.min(s.ms || 7000, 8000);
     const now = Date.now();
     state.sceneUntil = now + total;
-    // Maximum guaranteed lifetime on screen, preventing hover from pausing it forever
-    hardEndAt = now + Math.min(total + 3500, total * 1.35);
+    hardEndAt = now + total + 500;
 
     if (fallbackTimer) clearTimeout(fallbackTimer);
     fallbackTimer = setTimeout(() => {
       if (current) end('timeout');
-    }, Math.max(total + 1000, hardEndAt - now + 500));
+    }, total + 600);
 
     bar.style.width = '100%';
     state.hover = false;
     render();
     positionIsland();
+    if (typeof reportRect === 'function') reportRect(true);
     requestAnimationFrame(() => card.classList.add('on'));
+    startBlink();
     return true;
   };
   window.sceneShowing = () => !!current;
   window.endScene = end;
 
-  // Dismiss on close button
-  $('#sc-close').addEventListener('click', (e) => { e.stopPropagation(); end(); });
+  // Dismiss on close button (instant first-click response on pointerdown & click)
+  const doCloseScene = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    end('close-btn');
+  };
+  const scCloseBtn = $('#sc-close');
+  if (scCloseBtn) {
+    scCloseBtn.addEventListener('pointerdown', doCloseScene);
+    scCloseBtn.addEventListener('click', doCloseScene);
+  } end('close-btn'); });
 
   // Action button
   $('#sc-btn').addEventListener('click', (e) => {
@@ -91,6 +106,10 @@
   });
 
   // Clicking anywhere on the scene card or on the character immediately dismisses it
+  card.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('#sc-btn') || e.target.closest('#sc-close')) return;
+    end('card-click');
+  });
   card.addEventListener('click', (e) => {
     if (e.target.closest('#sc-btn') || e.target.closest('#sc-close')) return;
     end('card-click');
@@ -104,24 +123,18 @@
     if (e.key === 'Escape' && current) end('escape');
   });
 
-  // countdown (paused slightly while mouse is on it, but capped at hardEndAt)
+  // countdown tick
   setInterval(() => {
-    const now = Date.now();
-    const dt = now - lastTick;
-    lastTick = now;
     if (!current) return;
-    if (state.hover && state.sceneUntil < hardEndAt) {
-      state.sceneUntil = Math.min(hardEndAt, state.sceneUntil + dt * 0.4);
-    }
-    if (now >= state.sceneUntil || now >= hardEndAt) return end();
+    const now = Date.now();
+    if (now >= state.sceneUntil || now >= hardEndAt) return end('timed-out');
     bar.style.width = `${Math.max(0, (state.sceneUntil - now) / total) * 100}%`;
   }, 250);
 
-  (function blink() {
-    if (current) {
-      face.classList.add('blink');
-      setTimeout(() => face.classList.remove('blink'), 130);
-    }
-    setTimeout(blink, 2600 + Math.random() * 3200);
-  })();
+  function startBlink() {
+    if (!current) return;
+    face.classList.add('blink');
+    setTimeout(() => face.classList.remove('blink'), 130);
+    blinkTimer = setTimeout(startBlink, 3000 + Math.random() * 2000);
+  }
 })();

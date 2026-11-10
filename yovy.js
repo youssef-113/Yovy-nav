@@ -599,8 +599,9 @@ function scheduleCapture(ms) {
   }, ms);
 }
 async function captureBackdrop() {
-  // Only capture when actively hovered/expanded; skipped while idle, dragging or hidden
-  if (!active || capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
+  // Only capture when actively hovered/expanded; skipped while idle, dragging or hidden, or when a solid theme is active
+  const isSolidTheme = features.SOLID_THEMES && features.SOLID_THEMES.includes(features.get().theme);
+  if (isSolidTheme || !active || capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
   capturing = true;
   try {
     const display = screen.getDisplayMatching(win.getBounds());

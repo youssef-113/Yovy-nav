@@ -8,7 +8,7 @@ const { BrowserWindow, screen, ipcMain, shell } = require('electron');
 const settings = require('./settings');
 
 const ROOT = path.join(__dirname, 'mini');
-const FILES = { '/index.html': 'text/html', '/mini.css': 'text/css', '/mini.js': 'text/javascript' };
+const FILES = { '/index.html': 'text/html', '/mini.css': 'text/css', '/mini.js': 'text/javascript', '/themes.css': 'text/css' };
 const PAD = 10;          // transparent margin around the card (room for its shadow)
 const MIN_W = 280;
 const MAX_W = 960;
@@ -38,7 +38,8 @@ function startServer() {
         res.writeHead(404);
         return res.end();
       }
-      fs.readFile(path.join(ROOT, pathname), (err, data) => {
+      const filePath = pathname === '/themes.css' ? path.join(__dirname, 'themes.css') : path.join(ROOT, pathname);
+      fs.readFile(filePath, (err, data) => {
         if (err) {
           res.writeHead(500);
           return res.end();
@@ -158,7 +159,8 @@ async function open(opts) {
   current = opts;
   lastTime = opts.t;
   if (!win) createWindow();
-  const q = new URLSearchParams({ v: opts.id, t: opts.t.toFixed(2), title: opts.title || '' });
+  const features = require('./features');
+  const q = new URLSearchParams({ v: opts.id, t: opts.t.toFixed(2), title: opts.title || '', theme: features.get().theme || 'original' });
   await win.loadURL(`http://127.0.0.1:${port}/index.html?${q}`);
   win.show();
 }

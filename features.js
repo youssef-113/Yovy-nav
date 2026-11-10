@@ -41,6 +41,8 @@ const DEFAULTS = {
   clipboardHistory: true,
   // copied image / screenshot -> toast with "Add to Shelf"
   screenshotToast: true,
+  // theme
+  theme: 'original', // the island's look (themes.css)
   // mic / camera in use
   privacyDots: true,
   // companion
@@ -77,6 +79,14 @@ const DEFAULTS = {
   longBreakMin: 15,
 };
 
+// settings that are one of a fixed list
+const CHOICES = {
+  theme: ['original', 'bakka', 'outline', 'midnight', 'forest', 'snow', 'cat', 'galaxy', 'aurora', 'ocean', 'nody', 'lava', 'retro'],
+};
+
+// themes without glass: no screen capture behind them
+const SOLID_THEMES = ['bakka', 'midnight', 'forest', 'cat', 'galaxy', 'aurora', 'ocean', 'nody', 'lava', 'retro'];
+
 // number settings and their allowed range
 const RANGES = {
   remindEvery: [1, 240], remindFor: [5, 300], quietFrom: [0, 1439], quietTo: [0, 1439],
@@ -92,7 +102,9 @@ function pick(obj) {
   const out = {};
   for (const [k, v] of Object.entries(obj || {})) {
     if (!(k in DEFAULTS)) continue;
-    if (RANGES[k]) {
+    if (CHOICES[k]) {
+      if (CHOICES[k].includes(v)) out[k] = v;
+    } else if (RANGES[k]) {
       if (Number.isFinite(v)) out[k] = Math.min(Math.max(Math.round(v), RANGES[k][0]), RANGES[k][1]);
     } else if (typeof v === 'boolean') out[k] = v;
     else if (typeof v === 'string') out[k] = v.trim().slice(0, 40);
@@ -121,4 +133,4 @@ function reset() {
 
 const onChange = (fn) => listeners.push(fn);
 
-module.exports = { get, set, reset, onChange, DEFAULTS };
+module.exports = { get, set, reset, onChange, DEFAULTS, SOLID_THEMES, CHOICES };

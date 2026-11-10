@@ -8,6 +8,7 @@ const frame = document.getElementById('yt');
 
 document.getElementById('title').textContent = q.get('title') || 'Mini Player';
 document.title = q.get('title') || 'Mini Player';
+document.body.dataset.theme = q.get('theme') || 'original';
 
 let current = start;
 let ready = false;

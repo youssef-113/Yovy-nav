@@ -3,6 +3,12 @@ const $$ = (s) => document.querySelectorAll(s);
 const bridge = window.Yovy;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// Instant theme initialization before first paint to prevent default theme flashing
+try {
+  const cachedTheme = localStorage.getItem('yovy-theme') || 'original';
+  document.body.dataset.theme = cachedTheme;
+} catch {}
+
 const island = $('#island');
 const ICON_X = '<svg class="s" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 const ICON_PLUS = '<svg class="s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
@@ -1078,6 +1084,11 @@ function refreshTabs() {
 
 function applyFeatures(f) {
   state.features = f || {};
+  // the island's theme (themes.css); a theme without glass needs no backdrop
+  const theme = state.features.theme || 'original';
+  document.body.dataset.theme = theme;
+  try { localStorage.setItem('yovy-theme', theme); } catch {}
+  document.body.classList.toggle('th-solid', !getComputedStyle(document.body).getPropertyValue('--th-glass').trim());
   $$('[data-feat]').forEach((el) => el.classList.toggle('off', !feat(el.dataset.feat)));
   if ($('.info-slide.on')?.classList.contains('off')) showSlide(0);
   refreshTabs();

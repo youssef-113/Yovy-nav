@@ -6,7 +6,7 @@
 
 Your music, apps, files and alerts in one glass capsule at the top of your screen — with Yovy, a little companion who keeps you company.
 
-[**Download for Windows (v1.4.2)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
+[**Download for Windows (v1.5.0)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
 
 [![Latest release](https://img.shields.io/github/v/release/youssef-113/Yovy-nav?style=for-the-badge&label=Version&color=3b82f6&labelColor=1c1a2e)](https://github.com/youssef-113/Yovy-nav/releases/latest)
 [![Stars](https://img.shields.io/github/stars/youssef-113/Yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](https://github.com/youssef-113/Yovy-nav/stargazers)
@@ -15,6 +15,14 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 ![Meet YOVY-NAV](promo/en/01-hero.jpg)
 
 </div>
+
+## What's New in v1.5.0 🚀
+
+- **13 Complete Themes Integrated**: Full visual integration of the 13 original themes (*Original YOVY*, *Bakka*, *Outline*, *Midnight*, *Forest*, *Snow*, *Cat*, *Galaxy*, *Aurora*, *Ocean*, *Nody*, *Lava*, *Retro*).
+- **Centralized Live Theme Engine**: Instantaneous live theme switching across the island capsule, expanded panels, task manager, prayer schedules, sticky notes, media player, and secondary windows with zero page reload.
+- **Theme Gallery in Settings**: Brand-new interactive themes page in Settings with real-time visual previews, live color chips, and 1-click persistent selection.
+- **Intelligent CPU & Battery Optimization**: Automatically suspends desktop backdrop capture when solid themes are active, dramatically reducing idle CPU and GPU usage.
+- **Adaptive Companion & Visual Motifs**: Features custom cat ears & paw eye tracking for Cat theme, sakura petals for Nody theme, monospace font & square radius for Retro theme, and celestial/nature gradients for Galaxy, Aurora, Ocean, and Lava.
 
 ## What's New in v1.4.2 🚀
 
@@ -84,12 +92,12 @@ Turn on only what you need from one simple settings window. Vertical on the scre
 
 ## Install on Windows
 
-1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.4.2.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
+1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.5.0.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not code-signed yet — choose **More info → Run anyway**.
 3. The island appears at the top of your screen. Press **Ctrl + Alt + I** to open it.
 
 ### Download Links
-- **Latest Release (v1.4.2)**: [Download YOVY-NAV-Setup-1.4.2.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.4.2/YOVY-NAV-Setup-1.4.2.exe)
+- **Latest Release (v1.5.0)**: [Download YOVY-NAV-Setup-1.5.0.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.5.0/YOVY-NAV-Setup-1.5.0.exe)
 - **All Releases**: [GitHub Releases Page](https://github.com/youssef-113/Yovy-nav/releases)
 - **Tags & Source Code Archive**: [GitHub Tags Archive](https://github.com/youssef-113/Yovy-nav/tags)
 

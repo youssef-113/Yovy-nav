@@ -1194,3 +1194,223 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 #i-task-status { font-size: 11.5px; margin-inline-end: 2px; }
 #i-task-left { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .v-task { color: var(--orange); }
+
+/* ============ themes (colors in themes.css) ============ */
+body[data-theme] {
+  --text-1: var(--th-text);
+  --text-2: var(--th-soft);
+  --accent: var(--th-hi, rgb(var(--accent-rgb)));
+}
+body[data-theme] .clip {
+  background: var(--th-bg, rgba(20, 20, 26, .6));
+  font-family: var(--th-font, var(--font));
+}
+body[data-theme] .tint {
+  background: var(--th-tint, transparent);
+}
+body[data-theme] #island.expanded .tint,
+body[data-theme] #island.peek .tint {
+  background: var(--th-tint-strong, transparent);
+}
+body[data-theme] .sheen {
+  box-shadow: inset 0 0 0 var(--th-line-w, 1px) var(--th-line, var(--glass-stroke));
+}
+body[data-theme] .clip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--th-deco, none);
+}
+body.th-solid #bd {
+  display: none;
+}
+body[data-theme="retro"] #island {
+  --tl: var(--th-radius);
+  --tr: var(--th-radius);
+  --br: var(--th-radius);
+  --bl: var(--th-radius);
+}
+body[data-theme="retro"] .sheen {
+  background: none;
+}
+
+/* Cat: two ears on top of the island (horizontal only) */
+body[data-theme="cat"] #island:not(.vertical)::before,
+body[data-theme="cat"] #island:not(.vertical)::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  z-index: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 11px solid #2b2b33;
+}
+body[data-theme="cat"] #island:not(.vertical)::before { left: 16%; }
+body[data-theme="cat"] #island:not(.vertical)::after { right: 16%; }
+body[data-theme="cat"] #island.docked::before,
+body[data-theme="cat"] #island.docked::after { display: none; }
+
+/* Light theme: Nody */
+body[data-theme="nody"] {
+  --text-3: rgba(131, 24, 67, .48);
+  --fill-1: rgba(131, 24, 67, .07);
+  --fill-2: rgba(131, 24, 67, .12);
+  --fill-3: rgba(131, 24, 67, .2);
+  --card: rgba(255, 255, 255, .55);
+  --card-stroke: rgba(131, 24, 67, .1);
+  --glass-stroke: rgba(244, 114, 182, .45);
+}
+body[data-theme="nody"] .slider::before,
+body[data-theme="nody"] .bar,
+body[data-theme="nody"] .i-bar,
+body[data-theme="nody"] .t-bar,
+body[data-theme="nody"] .dl-bar {
+  background: rgba(131, 24, 67, .12);
+}
+body[data-theme="nody"] .slider .fill,
+body[data-theme="nody"] .t-bar b {
+  background: #db2777;
+}
+body[data-theme="nody"] .ctl.play {
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(219, 39, 119, .25);
+}
+body[data-theme="nody"] .seg-thumb {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(131, 24, 67, .15);
+}
+body[data-theme="nody"] .eq i {
+  background: #ec4899;
+  box-shadow: none;
+}
+body[data-theme="nody"] .topbar .seg,
+body[data-theme="nody"] .chip {
+  background: rgba(131, 24, 67, .08);
+}
+body[data-theme="nody"] .pr-next {
+  background: linear-gradient(160deg, rgba(236, 72, 153, .16), rgba(255, 255, 255, .5) 70%);
+}
+body[data-theme="nody"] .pr-next .eyebrow {
+  color: #be185d;
+}
+body[data-theme="nody"] .pr-next::after {
+  box-shadow: 14px 14px 0 0 rgba(236, 72, 153, .14);
+}
+body[data-theme="nody"] .pr-bell.on {
+  background: rgba(219, 39, 119, .14);
+  color: #be185d;
+}
+body[data-theme="nody"] .pr-row.next {
+  background: rgba(236, 72, 153, .14);
+  box-shadow: inset 0 0 0 .5px rgba(236, 72, 153, .4);
+}
+body[data-theme="nody"] .clip,
+body[data-theme="nody"] .clip svg.s {
+  color: var(--th-text);
+}
+body[data-theme="nody"] #island.expanded .clip,
+body[data-theme="nody"] #island.peek .clip {
+  box-shadow: 0 2px 4px rgba(131, 24, 67, .12), 0 24px 60px -12px rgba(131, 24, 67, .35);
+}
+
+/* Yovy's eyes by theme: sakura flowers on Nody, paws on Cat */
+body[data-theme="nody"] .eye,
+body[data-theme="cat"] .eye {
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+  background: none;
+}
+body[data-theme="nody"] .eye {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='20' cy='20' r='17' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23ec4899'/%3E%3Cstop offset='.35' stop-color='%23f9a8d4'/%3E%3Cstop offset='1' stop-color='%23fff1f7'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M20 20C13.6 16.4 11.8 9.6 15.2 4.6Q18 6.8 20 5.2Q22 6.8 24.8 4.6C28.2 9.6 26.4 16.4 20 20Z' transform='rotate(0 20 20)' fill='url(%23g)' stroke='%23f472b6' stroke-width='.6'/%3E%3Cpath d='M20 20C13.6 16.4 11.8 9.6 15.2 4.6Q18 6.8 20 5.2Q22 6.8 24.8 4.6C28.2 9.6 26.4 16.4 20 20Z' transform='rotate(72 20 20)' fill='url(%23g)' stroke='%23f472b6' stroke-width='.6'/%3E%3Cpath d='M20 20C13.6 16.4 11.8 9.6 15.2 4.6Q18 6.8 20 5.2Q22 6.8 24.8 4.6C28.2 9.6 26.4 16.4 20 20Z' transform='rotate(144 20 20)' fill='url(%23g)' stroke='%23f472b6' stroke-width='.6'/%3E%3Cpath d='M20 20C13.6 16.4 11.8 9.6 15.2 4.6Q18 6.8 20 5.2Q22 6.8 24.8 4.6C28.2 9.6 26.4 16.4 20 20Z' transform='rotate(216 20 20)' fill='url(%23g)' stroke='%23f472b6' stroke-width='.6'/%3E%3Cpath d='M20 20C13.6 16.4 11.8 9.6 15.2 4.6Q18 6.8 20 5.2Q22 6.8 24.8 4.6C28.2 9.6 26.4 16.4 20 20Z' transform='rotate(288 20 20)' fill='url(%23g)' stroke='%23f472b6' stroke-width='.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 1px 2px rgba(190, 24, 93, .25));
+}
+body[data-theme="nody"] .eye b {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Ccircle cx='7.00' cy='2.40' r='.9' fill='%23be185d'/%3E%3Ccircle cx='10.25' cy='3.75' r='.9' fill='%23be185d'/%3E%3Ccircle cx='11.60' cy='7.00' r='.9' fill='%23be185d'/%3E%3Ccircle cx='10.25' cy='10.25' r='.9' fill='%23be185d'/%3E%3Ccircle cx='7.00' cy='11.60' r='.9' fill='%23be185d'/%3E%3Ccircle cx='3.75' cy='10.25' r='.9' fill='%23be185d'/%3E%3Ccircle cx='2.40' cy='7.00' r='.9' fill='%23be185d'/%3E%3Ccircle cx='3.75' cy='3.75' r='.9' fill='%23be185d'/%3E%3Ccircle cx='7' cy='7' r='3.1' fill='%23facc15' stroke='%23f59e0b' stroke-width='.6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body[data-theme="cat"] .eye b {
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='p' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fbcfe8'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M20 19.5c-6.4 0-10.6 6-10.6 10.2 0 3.4 2.8 5.1 5.6 4.6 2-.35 3.2-1.4 5-1.4s3 1.05 5 1.4c2.8.5 5.6-1.2 5.6-4.6 0-4.2-4.2-10.2-10.6-10.2Z' fill='url(%23p)' stroke='%23db2777' stroke-width='.7'/%3E%3Cellipse cx='8.6' cy='16.2' rx='3.4' ry='4.4' transform='rotate(-24 8.6 16.2)' fill='url(%23p)' stroke='%23db2777' stroke-width='.7'/%3E%3Cellipse cx='15.6' cy='9.4' rx='3.6' ry='4.7' transform='rotate(-8 15.6 9.4)' fill='url(%23p)' stroke='%23db2777' stroke-width='.7'/%3E%3Cellipse cx='24.4' cy='9.4' rx='3.6' ry='4.7' transform='rotate(8 24.4 9.4)' fill='url(%23p)' stroke='%23db2777' stroke-width='.7'/%3E%3Cellipse cx='31.4' cy='16.2' rx='3.4' ry='4.4' transform='rotate(24 31.4 16.2)' fill='url(%23p)' stroke='%23db2777' stroke-width='.7'/%3E%3Cellipse cx='17' cy='24' rx='2.6' ry='1.4' fill='%23fff' opacity='.55'/%3E%3Cellipse cx='14.6' cy='7.4' rx='1.2' ry='.8' fill='%23fff' opacity='.6'/%3E%3Cellipse cx='23.4' cy='7.4' rx='1.2' ry='.8' fill='%23fff' opacity='.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35));
+}
+body[data-theme="nody"] .eyes.blink .eye,
+body[data-theme="cat"] .eyes.blink .eye {
+  height: 22px;
+  transform: scale(.82);
+}
+
+/* Theme component consistency across YOVY-NAV */
+body[data-theme] .task-row {
+  background: var(--fill-1);
+  border-color: var(--card-stroke);
+}
+body[data-theme] .task-row:hover {
+  background: var(--fill-2);
+}
+body[data-theme] .task-day-pill {
+  background: var(--fill-1);
+  border-color: var(--card-stroke);
+  color: var(--text-2);
+}
+body[data-theme] .task-time-box {
+  background: var(--fill-1);
+  border-color: var(--card-stroke);
+}
+body[data-theme] .task-time-input {
+  color: var(--text-1);
+}
+body[data-theme] .task-input-primary input {
+  color: var(--text-1);
+}
+body[data-theme] .task-input-box,
+body[data-theme] .task-summary-card {
+  background: var(--card);
+  box-shadow: inset 0 0 0 .5px var(--card-stroke);
+}
+body[data-theme] .task-table-container {
+  background: var(--fill-1);
+  border-color: var(--card-stroke);
+}
+body[data-theme] .task-done-table th {
+  background: var(--fill-2);
+  color: var(--text-3);
+  border-bottom-color: var(--card-stroke);
+}
+body[data-theme] .task-done-table td {
+  border-bottom-color: var(--card-stroke);
+}
+body[data-theme] .shelf-note-card {
+  background: var(--card);
+  box-shadow: inset 0 0 0 .5px var(--card-stroke);
+}
+body[data-theme] .shelf-note-card textarea {
+  color: var(--text-1);
+}
+body[data-theme] .card {
+  border-color: var(--card-stroke);
+}
+
+body.th-rec #bd { display: none; }
+body.th-rec:not(.th-solid) .clip { background: var(--th-solid, rgb(29, 31, 39)); }
+
+body.no-blur:not(.th-solid) .clip { background: rgb(20, 20, 26); }
+body.no-blur:not(.th-solid) .tint,
+body.no-blur:not(.th-solid) #island.expanded .tint,
+body.no-blur:not(.th-solid) #island.peek .tint {
+  background: rgba(20, 20, 26, .97);
+}

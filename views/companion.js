@@ -21,7 +21,7 @@
 
   const today = () => new Date().toDateString();
   const briefDone = () => { try { return localStorage.getItem(BRIEF_KEY) === today(); } catch { return false; } };
-  const markBrief = () => { try { localStorage.setItem(BRIEF_KEY, today()); } catch {} };
+  const markBrief = () => { try { localStorage.setItem(BRIEF_KEY, today()); } catch { } };
   const mins = (ms) => {
     const m = Math.round(ms / 60000);
     return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
@@ -54,7 +54,7 @@
     try {
       const w = (await bridge.system.snapshot())?.weather;
       if (w) lines.push(line('🌤️', `<b>${w.temp}°</b> in ${esc(w.city || 'your city')} · H ${w.hi}° L ${w.lo}°`));
-    } catch {}
+    } catch { }
     const pr = window.nextPrayerText?.();
     if (pr && feat('tabPrayer')) {
       const [name, ...time] = pr.split(' ');
@@ -114,10 +114,10 @@
     {
       title: (name) => name ? `Good job, ${name}! 👏` : 'Good job! 👏',
       msg: 'Another productive hour completed. Keep up the great momentum!',
-      badge: 'Keep Going 🚀',
+      badge: 'Keep Going  ',
     },
     {
-      title: (name) => name ? `Keep going, ${name}! 🚀` : 'Keep going! 🚀',
+      title: (name) => name ? `Keep going, ${name}!  ` : 'Keep going!  ',
       msg: "You're making steady progress. Stay focused and keep crushing it!",
       badge: 'Motivation 🔥',
     },

@@ -16,7 +16,7 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 
 </div>
 
-## What's New in v1.5.0 🚀
+## What's New in v1.5.0  
 
 - **13 Complete Themes Integrated**: Full visual integration of the 13 original themes (*Original YOVY*, *Bakka*, *Outline*, *Midnight*, *Forest*, *Snow*, *Cat*, *Galaxy*, *Aurora*, *Ocean*, *Nody*, *Lava*, *Retro*).
 - **Centralized Live Theme Engine**: Instantaneous live theme switching across the island capsule, expanded panels, task manager, prayer schedules, sticky notes, media player, and secondary windows with zero page reload.
@@ -24,7 +24,7 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 - **Intelligent CPU & Battery Optimization**: Automatically suspends desktop backdrop capture when solid themes are active, dramatically reducing idle CPU and GPU usage.
 - **Adaptive Companion & Visual Motifs**: Features custom cat ears & paw eye tracking for Cat theme, sakura petals for Nody theme, monospace font & square radius for Retro theme, and celestial/nature gradients for Galaxy, Aurora, Ocean, and Lava.
 
-## What's New in v1.4.2 🚀
+## What's New in v1.4.2  
 
 - **Zero-Loss Atomic Storage Engine**: Upgraded `settings.js` with atomic file transactions (`.tmp` write + `fs.renameSync`), automatic `.bak` backup generation, and seamless self-healing fallback if any store is corrupted.
 - **Inline Task Editing & Progress Stats**: Double-click any active task to edit its title directly (`Enter` to commit, `Escape` to cancel) + real-time completion progress tracking (`X remaining · Y of Z completed (N%)`).

@@ -63,6 +63,7 @@ function classify(text) {
   const t = text.trim();
   if (!t || t.length > 4000) return null;
   if (/^https?:\/\/[^\s]+$/i.test(t) && t.length <= 2000) return { type: 'url', url: t, host: new URL(t).hostname.replace(/^www\./, '') };
+  if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(t) && t.length <= 120) return { type: 'email', email: t };
   if (/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t) || /^(rgb|rgba|hsl|hsla)\([\d\s.,%/deg]+\)$/i.test(t)) return { type: 'color', color: t };
   // arithmetic: digits with at least one operator between them — but not dates (12-10-2026,
   // 29/10/2026) or dashed phone numbers (010-1234-5678)

@@ -72,8 +72,10 @@
   function queueSave() {
     clearTimeout(saveTimer);
     setStatus('Saving…', 0);
+    const val = noteEl.value;
+    try { localStorage.setItem('yovy_scratchpad_cache', val); } catch {}
     saveTimer = setTimeout(() => {
-      bridge.notes.save({ text: noteEl.value });
+      bridge.notes.save({ text: val });
       setStatus('Saved', 1500);
     }, 350);
   }
@@ -109,15 +111,25 @@
     noteEl.value = '';
     updateCount();
     clearTimeout(saveTimer);
+    try { localStorage.removeItem('yovy_scratchpad_cache'); } catch {}
     bridge.notes.save({ text: '' });
     setStatus('Cleared', 1500);
   });
 
-  // Load saved note on startup
+  // Load saved note on startup (instant cached display + bridge sync)
+  try {
+    const cached = localStorage.getItem('yovy_scratchpad_cache');
+    if (cached && !noteEl.value) {
+      noteEl.value = cached;
+      updateCount();
+    }
+  } catch {}
+
   if (bridge.notes?.get) {
     bridge.notes.get().then((data) => {
       if (data && typeof data.text === 'string') {
         noteEl.value = data.text;
+        try { localStorage.setItem('yovy_scratchpad_cache', data.text); } catch {}
         updateCount();
       }
     }).catch(() => {});

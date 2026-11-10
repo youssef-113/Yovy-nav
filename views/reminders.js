@@ -87,6 +87,7 @@
   }
 
   let total = 0;
+  let hardEndAt = 0;
   let nextAt = 0;
   let nextEvery = null; // the interval nextAt was counted with
   function schedule() {
@@ -114,6 +115,7 @@
     if (!fontReady) loadFonts().then(() => { fit(item); positionIsland(); });
     total = item.ms || showMs();
     state.reminderUntil = Date.now() + total;
+    hardEndAt = Date.now() + total + 30000; // max 30s pause extension ceiling
     bar.style.width = '100%';
     render();
     positionIsland();
@@ -123,6 +125,7 @@
   function hide() {
     bridge.suppressHover?.();
     state.reminderUntil = 0;
+    hardEndAt = 0;
     state.hover = false; // don't spring open under the cursor when the card leaves
     schedule();
     render();
@@ -135,9 +138,9 @@
     lastTick = now;
     if (state.reminderUntil) {
       if (!feat('reminders') && !previewing) return hide();
-      const reading = state.hover && lastMode === 'reminder';
+      const reading = state.hover && lastMode === 'reminder' && now < hardEndAt;
       layer.classList.toggle('paused', reading);
-      if (reading) state.reminderUntil += dt;
+      if (reading) state.reminderUntil = Math.min(state.reminderUntil + dt, hardEndAt);
       if (now >= state.reminderUntil) {
         previewing = false;
         return hide();
@@ -178,6 +181,14 @@
   // Escape key closes active reminder
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && state.reminderUntil > Date.now()) {
+      previewing = false;
+      hide();
+    }
+  });
+
+  // Dismiss on Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.reminderUntil) {
       previewing = false;
       hide();
     }

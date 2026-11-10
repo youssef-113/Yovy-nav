@@ -12,6 +12,10 @@
         state.toastAction = () => bridge.clipAction(dl ? 'download' : 'open');
         break;
       }
+      case 'email':
+        showToast('clip-url', s.email, 'Email', 0, 5000);
+        state.toastAction = () => bridge.clipAction('email');
+        break;
       case 'color':
         island.style.setProperty('--sw', s.color);
         showToast('clip-color', s.color, '', 0, 3000);

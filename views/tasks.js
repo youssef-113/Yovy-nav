@@ -486,8 +486,14 @@
 
     if (badgeActiveCount) badgeActiveCount.textContent = active.length;
     if (statsEl) statsEl.textContent = `${active.length} active tasks`;
+    const finishedCount = tasks.filter((t) => t.completed).length;
+    const totalCount = active.length + finishedCount;
     if (pendingSummaryEl) {
-      pendingSummaryEl.textContent = `${active.length} ${active.length === 1 ? 'task remaining' : 'tasks remaining'}`;
+      if (totalCount > 0) {
+        pendingSummaryEl.textContent = `${active.length} remaining · ${finishedCount} of ${totalCount} completed (${Math.round((finishedCount / totalCount) * 100)}%)`;
+      } else {
+        pendingSummaryEl.textContent = '0 tasks remaining';
+      }
     }
     badgeEl?.classList.toggle('on', active.length > 0);
     if (emptyActiveEl) emptyActiveEl.hidden = active.length > 0;
@@ -552,6 +558,50 @@
         row.querySelector('.task-check-circle')?.addEventListener('click', () => finishTask(t));
         row.querySelector('.task-finish-btn')?.addEventListener('click', () => finishTask(t));
         row.querySelector('.task-del')?.addEventListener('click', () => deleteTask(t.id));
+
+        // Inline double-click editing
+        const titleEl = row.querySelector('.task-title');
+        if (titleEl) {
+          titleEl.setAttribute('title', 'Double-click to edit task');
+          titleEl.addEventListener('dblclick', () => {
+            const currentText = t.text;
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.className = 'task-inline-edit';
+            editInput.value = currentText;
+            editInput.maxLength = 120;
+            titleEl.replaceWith(editInput);
+            bridge.focusInput(true);
+            editInput.focus();
+            editInput.select();
+
+            let committed = false;
+            const commit = () => {
+              if (committed) return;
+              committed = true;
+              bridge.focusInput(false);
+              const val = editInput.value.trim();
+              if (val && val !== currentText) {
+                t.text = val;
+                saveTasks();
+              }
+              render();
+            };
+
+            const cancel = () => {
+              if (committed) return;
+              committed = true;
+              bridge.focusInput(false);
+              render();
+            };
+
+            editInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') commit();
+              else if (e.key === 'Escape') cancel();
+            });
+            editInput.addEventListener('blur', commit);
+          });
+        }
 
         listEl.append(row);
       }

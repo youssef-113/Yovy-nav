@@ -6,7 +6,7 @@
 
 Your music, apps, files and alerts in one glass capsule at the top of your screen — with Yovy, a little companion who keeps you company.
 
-[**Download for Windows (v1.4.1)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
+[**Download for Windows (v1.4.2)**](https://github.com/youssef-113/Yovy-nav/releases/latest) · [**All Releases & Tags**](https://github.com/youssef-113/Yovy-nav/tags) · Free and open source (GPL v3)
 
 [![Latest release](https://img.shields.io/github/v/release/youssef-113/Yovy-nav?style=for-the-badge&label=Version&color=3b82f6&labelColor=1c1a2e)](https://github.com/youssef-113/Yovy-nav/releases/latest)
 [![Stars](https://img.shields.io/github/stars/youssef-113/Yovy-nav?style=for-the-badge&label=Stars&color=f472b6&labelColor=1c1a2e&logo=github&logoColor=white)](https://github.com/youssef-113/Yovy-nav/stargazers)
@@ -16,13 +16,14 @@ Your music, apps, files and alerts in one glass capsule at the top of your scree
 
 </div>
 
-## What's New in v1.4.1 🚀
+## What's New in v1.4.2 🚀
 
-- **Instant First-Click Alert & Reminder Dismissal**: Resolved the click latency and missed clicks on prayer alerts and reminders. Close buttons are enlarged to 32px with zero-delay hover intent activation on entry, `pointerdown` response, and smart hover suppression preventing accidental island expansion upon dismissal.
-- **Ayat al-Kursi & Enriched Islamic Reminders**: Added **Ayat al-Kursi (سورة البقرة ٢٥٥)** with dynamic typography and auto-expanding cards, Khawateem Al-Baqarah, the Three Quls (Al-Ikhlas, Al-Falaq, An-Nas), and authentic Sahih Hadiths (Bukhari, Muslim, Tirmidhi) with narrator references.
-- **Personalized Hourly Encouragement**: Positive hourly boosts in English (*"Good job, [Name]!", "Keep going!"*) with celebratory confetti, quiet hours protection, and a preview button in Settings.
-- **Drastic CPU & Memory Reduction**: Throttled desktop background capturing when active and halted it when idle/collapsed, reduced WMI brightness polling to 8s (disabled on desktop monitors), and capped V8 memory usage.
-- **Crash Hardening**: Protected hardware and media helper process spawns to eliminate startup errors.
+- **Zero-Loss Atomic Storage Engine**: Upgraded `settings.js` with atomic file transactions (`.tmp` write + `fs.renameSync`), automatic `.bak` backup generation, and seamless self-healing fallback if any store is corrupted.
+- **Inline Task Editing & Progress Stats**: Double-click any active task to edit its title directly (`Enter` to commit, `Escape` to cancel) + real-time completion progress tracking (`X remaining · Y of Z completed (N%)`).
+- **Smart Clipboard Email Classification**: Added email recognition (`mailto:` action) alongside links, calculations, colors, and word counters.
+- **Reminder Card Hard Ceiling & Escape Dismiss**: Added a ceiling preventing hover from stalling Dhikr/Du'a cards indefinitely, with instant keyboard `Escape` key dismissal.
+- **Instant Scratchpad Notes Persistence**: Added local caching alongside bridge syncing so sticky notes load with zero delay and are protected against unexpected system reboots.
+- **Hardened IPC & Input Validation**: Added strict type and bounds assertions across `apps`, `shelf`, and `clip-action` handlers to prevent IPC communication exceptions.
 
 ## Features
 
@@ -83,12 +84,12 @@ Turn on only what you need from one simple settings window. Vertical on the scre
 
 ## Install on Windows
 
-1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.4.1.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
+1. Download **YOVY-NAV Setup** (`YOVY-NAV-Setup-1.4.2.exe`) from [Releases](https://github.com/youssef-113/Yovy-nav/releases/latest) or browse all releases in [Tags](https://github.com/youssef-113/Yovy-nav/tags).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not code-signed yet — choose **More info → Run anyway**.
 3. The island appears at the top of your screen. Press **Ctrl + Alt + I** to open it.
 
 ### Download Links
-- **Latest Release (v1.4.1)**: [Download YOVY-NAV-Setup-1.4.1.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.4.1/YOVY-NAV-Setup-1.4.1.exe)
+- **Latest Release (v1.4.2)**: [Download YOVY-NAV-Setup-1.4.2.exe](https://github.com/youssef-113/Yovy-nav/releases/download/v1.4.2/YOVY-NAV-Setup-1.4.2.exe)
 - **All Releases**: [GitHub Releases Page](https://github.com/youssef-113/Yovy-nav/releases)
 - **Tags & Source Code Archive**: [GitHub Tags Archive](https://github.com/youssef-113/Yovy-nav/tags)
 

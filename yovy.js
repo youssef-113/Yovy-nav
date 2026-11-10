@@ -748,23 +748,26 @@ ipcMain.on('focus-input', (_e, on) => {
 // --- apps ---
 ipcMain.handle('apps-list', () => apps.list());
 ipcMain.handle('apps-all', () => apps.all());
-ipcMain.on('apps-add', (_e, id) => apps.add(id));
-ipcMain.on('apps-remove', (_e, id) => apps.remove(id));
-ipcMain.on('apps-launch', (_e, id) => apps.launch(id));
-ipcMain.on('apps-reorder', (_e, ids) => apps.reorder(ids));
+ipcMain.on('apps-add', (_e, id) => { if (typeof id === 'string' && id.trim()) apps.add(id.trim()); });
+ipcMain.on('apps-remove', (_e, id) => { if (typeof id === 'string' && id.trim()) apps.remove(id.trim()); });
+ipcMain.on('apps-launch', (_e, id) => { if (typeof id === 'string' && id.trim()) apps.launch(id.trim()); });
+ipcMain.on('apps-reorder', (_e, ids) => { if (Array.isArray(ids)) apps.reorder(ids); });
 
 // --- shelf ---
 const shelfChanged = async () => send('shelf', await shelf.list());
 ipcMain.handle('shelf-list', () => shelf.list());
 ipcMain.on('shelf-add', (_e, paths) => {
-  if (Array.isArray(paths)) shelf.add(paths);
+  if (Array.isArray(paths)) {
+    const valid = paths.filter((p) => typeof p === 'string' && p.trim().length > 0);
+    if (valid.length) shelf.add(valid);
+  }
   shelfChanged();
 });
-ipcMain.on('shelf-remove', (_e, p) => { shelf.remove(p); shelfChanged(); });
+ipcMain.on('shelf-remove', (_e, p) => { if (typeof p === 'string' && p.trim()) { shelf.remove(p); shelfChanged(); } });
 ipcMain.on('shelf-clear', () => { shelf.clear(); shelfChanged(); });
-ipcMain.on('shelf-open', (_e, p) => shelf.open(p));
-ipcMain.on('shelf-reveal', (_e, p) => shelf.reveal(p));
-ipcMain.on('shelf-drag', (e, p) => shelf.startDrag(e.sender, p));
+ipcMain.on('shelf-open', (_e, p) => { if (typeof p === 'string' && p.trim()) shelf.open(p); });
+ipcMain.on('shelf-reveal', (_e, p) => { if (typeof p === 'string' && p.trim()) shelf.reveal(p); });
+ipcMain.on('shelf-drag', (e, p) => { if (typeof p === 'string' && p.trim() && e?.sender) shelf.startDrag(e.sender, p); });
 
 // --- tasks (saved in %AppData%\yovy-nav\tasks.json) ---
 ipcMain.handle('tasks-get', () => settings.load('tasks.json', []));
@@ -953,6 +956,8 @@ ipcMain.on('clip-action', async (_e, action) => {
     } catch {
       shell.openExternal(s.url);
     }
+  } else if (s.type === 'email' && action === 'email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email)) {
+    shell.openExternal(`mailto:${s.email}`);
   } else if (s.type === 'math' && action === 'copy') system.writeQuiet(s.result);
 });
 ipcMain.handle('cal-get', () => ({ ...calendar.snapshot(), hasUrl: calendar.hasUrl() }));

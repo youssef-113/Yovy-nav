@@ -1,11 +1,11 @@
-// Updates from the GitHub releases (latest.yml): checked a minute after start and every 6 hours,
-// downloaded in the background, then offered on the island ("Update ready · Restart"). An
-// update that is never accepted is installed when the app quits. Only the installed app updates.
+// Updates from the GitHub releases (latest.yml): checked shortly after start and every 2 hours,
+// downloaded automatically in the background, then offered on the island ("Update ready · Restart").
+// If not explicitly restarted, it installs silently and automatically when the app quits.
 const { app } = require('electron');
 const log = require('./log');
 
-const FIRST_CHECK_MS = 60 * 1000;
-const EVERY_MS = 6 * 60 * 60 * 1000;
+const FIRST_CHECK_MS = 15 * 1000;
+const EVERY_MS = 2 * 60 * 60 * 1000;
 
 let updater = null;
 let enabled = false;
@@ -23,21 +23,44 @@ function check() {
   updater.checkForUpdates().catch((err) => log.info(`update check failed: ${err.message}`));
 }
 
+function checkManual() {
+  if (!updater) return Promise.resolve({ status: 'unsupported', message: 'Only packaged app can update' });
+  if (ready) {
+    send('update', { version: ready });
+    return Promise.resolve({ status: 'ready', version: ready });
+  }
+  return updater.checkForUpdates()
+    .then((res) => {
+      const isAvailable = res?.updateInfo?.version && res.updateInfo.version !== app.getVersion();
+      return { status: isAvailable ? 'downloading' : 'latest', version: res?.updateInfo?.version || app.getVersion() };
+    })
+    .catch((err) => {
+      log.info(`manual update check failed: ${err.message}`);
+      return { status: 'error', message: err.message };
+    });
+}
+
 function start(sendFn, on) {
   send = sendFn;
   if (!app.isPackaged) return;
-  ({ autoUpdater: updater } = require('electron-updater'));
-  updater.autoDownload = true;
-  updater.autoInstallOnAppQuit = true;
-  updater.logger = null;
-  updater.on('update-available', (i) => log.info(`update ${i.version} available, downloading`));
-  updater.on('update-downloaded', (i) => {
-    ready = i.version;
-    log.info(`update ${i.version} ready`);
-    send('update', { version: ready });
-  });
-  updater.on('error', (err) => log.info(`update error: ${err.message}`));
-  setEnabled(on);
+  try {
+    ({ autoUpdater: updater } = require('electron-updater'));
+    updater.autoDownload = true;
+    updater.autoInstallOnAppQuit = true;
+    updater.logger = null;
+    updater.on('update-available', (i) => {
+      log.info(`update ${i.version} available, downloading in background`);
+    });
+    updater.on('update-downloaded', (i) => {
+      ready = i.version;
+      log.info(`update ${i.version} ready, ready to install`);
+      send('update', { version: ready });
+    });
+    updater.on('error', (err) => log.info(`update error: ${err.message}`));
+    setEnabled(on);
+  } catch (err) {
+    log.info(`failed to initialize autoUpdater: ${err.message}`);
+  }
 }
 
 function setEnabled(on) {
@@ -57,4 +80,4 @@ function install() {
   if (ready && updater) updater.quitAndInstall(true, true);
 }
 
-module.exports = { start, setEnabled, install };
+module.exports = { start, setEnabled, install, checkManual };

@@ -181,6 +181,27 @@ $$('[data-general-action]').forEach((b) => b.addEventListener('click', () => {
   api.setGeneral(b.dataset.generalAction, true);
   saved('Done');
 }));
+$('#btn-check-update')?.addEventListener('click', async () => {
+  const statusEl = $('#update-status');
+  if (!statusEl) return;
+  statusEl.textContent = 'Checking for updates…';
+  try {
+    const res = await api.checkUpdate();
+    if (res?.status === 'ready') {
+      statusEl.textContent = `Update ${res.version} downloaded! Restart to apply.`;
+    } else if (res?.status === 'downloading') {
+      statusEl.textContent = `New version ${res.version} found! Downloading in background…`;
+    } else if (res?.status === 'latest') {
+      statusEl.textContent = 'You are using the latest version.';
+    } else if (res?.status === 'unsupported') {
+      statusEl.textContent = 'Development mode — updates work in installed app.';
+    } else {
+      statusEl.textContent = res?.message ? `Check failed: ${res.message}` : 'Up to date.';
+    }
+  } catch (err) {
+    statusEl.textContent = 'Could not reach update server.';
+  }
+});
 
 // ---- location ----
 function showLocation(info) {

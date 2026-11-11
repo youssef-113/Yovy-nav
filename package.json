@@ -52,11 +52,10 @@
       "executableName": "YOVY-NAV"
     },
     "nsis": {
-      "oneClick": false,
-      "artifactName": "YOVY-NAV-Setup-${version}.${ext}",
-      "license": "LICENSE",
+      "oneClick": true,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "artifactName": "YOVY-NAV-Setup-${version}.${ext}",
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "YOVY-NAV",

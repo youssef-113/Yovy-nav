@@ -974,6 +974,7 @@ ipcMain.on('open-settings', () => prefsWindow.open());
 // the island page reports once all its scripts ran (an early error would stop it before this)
 ipcMain.on('island-ready', () => log.info('island ready'));
 ipcMain.on('update-install', () => updater.install());
+ipcMain.handle('check-update', () => updater.checkManual());
 ipcMain.handle('features-get', () => features.get());
 ipcMain.on('features-set', (_e, patch) => features.set(patch));
 ipcMain.on('features-reset', () => features.reset());

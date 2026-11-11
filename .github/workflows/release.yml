@@ -44,4 +44,5 @@ jobs:
             dist/*.exe
             dist/*.blockmap
             dist/*.zip
+            dist/*.yml
           generate_release_notes: true

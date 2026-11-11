@@ -81,8 +81,9 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 #island.vertical.compact { --w: 44px; --h: 136px; --r: 22px; }
 #island.vertical.toast   { --w: 44px; --h: 168px; --r: 22px; }
 
-#island:not(.expanded) { cursor: grab; }
-#island.moving { cursor: grabbing; }
+#island:not(.expanded):not(.fixed-position) { cursor: grab; }
+#island.moving { cursor: grabbing !important; user-select: none; }
+#island.fixed-position { cursor: default !important; }
 #island.moving .clip { transform: scale(1.05); box-shadow: 0 18px 40px -10px rgba(0, 0, 0, .6); }
 
 .clip {

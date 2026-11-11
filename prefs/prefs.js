@@ -161,6 +161,7 @@ $('#cheer-preview')?.addEventListener('click', () => api.previewCheer?.());
 function showGeneral(g) {
   $$('[data-general]').forEach((el) => { el.checked = !!g[el.dataset.general]; });
   $$('[data-orient]').forEach((b) => b.setAttribute('aria-checked', String((b.dataset.orient === 'v') === !!g.vertical)));
+  $$('[data-pos-mode]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.posMode === g.positionMode)));
   if (g.version) $('#version').textContent = `Version ${g.version}`;
 }
 $$('[data-support]').forEach((b) => b.addEventListener('click', () => api.openSupport(b.dataset.support)));
@@ -170,6 +171,10 @@ $$('[data-general]').forEach((el) => el.addEventListener('change', () => {
 }));
 $$('[data-orient]').forEach((b) => b.addEventListener('click', () => {
   api.setGeneral('vertical', b.dataset.orient === 'v');
+  saved();
+}));
+$$('[data-pos-mode]').forEach((b) => b.addEventListener('click', () => {
+  api.setGeneral('positionMode', b.dataset.posMode);
   saved();
 }));
 $$('[data-general-action]').forEach((b) => b.addEventListener('click', () => {

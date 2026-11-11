@@ -230,23 +230,27 @@ let press = null;
 let justMoved = false;
 
 island.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0 || e.target.closest(NO_DRAG)) return;
+  if (state.fixedPosition || e.button !== 0 || e.target.closest(NO_DRAG)) return;
   press = { x: e.screenX, y: e.screenY, id: e.pointerId };
 });
 window.addEventListener('pointermove', (e) => {
-  if (!press || state.moving) return;
-  if (Math.hypot(e.screenX - press.x, e.screenY - press.y) < 5) return; // drag threshold
+  if (!press) return;
+  if (state.moving) {
+    // If mouse button was released outside without triggering pointerup
+    if (e.buttons === 0) {
+      endMove();
+      return;
+    }
+    return;
+  }
+  if (Math.hypot(e.screenX - press.x, e.screenY - press.y) < 3) return; // responsive drag threshold
   state.moving = true;
   try { island.setPointerCapture(press.id); } catch {}
   island.classList.add('moving');
   render();
   bridge.dragStart();
 });
-function endMove(e) {
-  // If Windows fired lostpointercapture during a window reposition, but mouse button is still held down, do NOT cancel the drag!
-  if (e && e.type === 'lostpointercapture' && (e.buttons & 1)) {
-    return;
-  }
+function endMove() {
   if (state.moving) {
     state.moving = false;
     state.hover = false;
@@ -261,7 +265,6 @@ function endMove(e) {
 }
 window.addEventListener('pointerup', endMove);
 window.addEventListener('mouseup', endMove);
-island.addEventListener('lostpointercapture', endMove);
 
 // a plain click on the collapsed island opens it (also right after a move)
 island.addEventListener('click', (e) => {
@@ -331,6 +334,8 @@ function positionIsland() {
 
 bridge.onAnchor((a) => {
   anchor = a;
+  state.fixedPosition = !!a.fixedPosition;
+  island.classList.toggle('fixed-position', state.fixedPosition);
   island.classList.toggle('addr-slim', a.addr === 'slim');
   island.classList.toggle('addr-line', a.addr === 'line');
   if (a.addr) {

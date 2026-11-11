@@ -43,7 +43,7 @@ let quitting = false;
 let userHidden = false;
 let fullscreenHidden = false;
 let prefs = Object.assign(
-  { ax: null, ay: null, docked: false, vertical: false, side: 'right' },
+  { ax: null, ay: null, docked: false, vertical: false, side: 'right', fixedPosition: false },
   settings.load('settings.json', {})
 );
 
@@ -169,6 +169,7 @@ function layout() {
     docked: !prefs.vertical && prefs.docked,
     vertical: prefs.vertical,
     side: prefs.side,
+    fixedPosition: !!prefs.fixedPosition,
   };
   const key = JSON.stringify(msg);
   if (key !== lastLayout) {
@@ -192,7 +193,38 @@ function savePosition() {
 function resetPosition() {
   prefs.docked = false;
   prefs.vertical = false;
+  prefs.fixedPosition = false;
   anchor = defaultAnchor();
+  layout();
+  savePosition();
+  notifyGeneral();
+}
+
+function setFixedPosition(on) {
+  prefs.fixedPosition = !!on;
+  layout();
+  savePosition();
+  notifyGeneral();
+}
+
+function setPositionMode(mode) {
+  if (prefs.fixedPosition) return;
+  const d = primaryDisplay();
+  const b = d.bounds;
+  if (mode === 'top') {
+    prefs.vertical = false;
+    prefs.docked = true;
+    anchor = { x: Math.round(b.x + b.width / 2), y: Math.round(b.y) };
+  } else if (mode === 'vertical') {
+    prefs.vertical = true;
+    prefs.docked = false;
+    prefs.side = 'right';
+    anchor = { x: b.x + b.width, y: Math.round(b.y + b.height / 3) };
+  } else if (mode === 'free') {
+    prefs.vertical = false;
+    prefs.docked = false;
+    anchor = { x: Math.round(b.x + b.width / 2), y: Math.round(b.y + 120) };
+  }
   layout();
   savePosition();
   notifyGeneral();
@@ -220,7 +252,7 @@ function setVertical(on) {
 // The renderer reports drag start/end; while dragging the window follows the cursor.
 let drag = null;
 ipcMain.on('drag-start', () => {
-  if (!win || drag || !anchor) return;
+  if (!win || drag || !anchor || prefs.fixedPosition) return;
   const p = screen.getCursorScreenPoint();
   // grab the (shrinking) pill near where it was pressed so it stays under the cursor
   const ox = clamp(p.x - anchor.x, -PILL_HALF_W + 16, PILL_HALF_W - 16);
@@ -231,7 +263,7 @@ ipcMain.on('drag-start', () => {
 });
 
 function followCursor() {
-  if (!drag || !win || win.isDestroyed()) return;
+  if (!drag || !win || win.isDestroyed() || prefs.fixedPosition) return;
   const p = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(p);
   const b = display.bounds;
@@ -239,20 +271,23 @@ function followCursor() {
 
   const SNAP_TOP_PX = 32;
   const SNAP_EDGE_PX = 44;
-  const DETACH_EDGE_PX = 72;
+  const DETACH_EDGE_PX = 64;
   const CENTER_SNAP_PX = 44;
 
   let isVertical = prefs.vertical;
   let side = prefs.side;
 
   if (isVertical) {
-    // If pulled inward away from the screen edge, detach from vertical and become horizontal
+    // If pulled inward away from the screen edge, detach smoothly into free desktop
     const distFromEdge = side === 'left' ? (p.x - b.x) : (b.x + b.width - p.x);
     if (distFromEdge > DETACH_EDGE_PX) {
-      isVertical = false;
       prefs.vertical = false;
+      prefs.docked = false;
       drag.ox = 0;
       drag.oy = 16;
+      anchor = { x: p.x, y: p.y - 16 };
+      layout();
+      return;
     } else {
       // Stay vertical on this edge or switch to opposite edge if crossed display center
       side = p.x < b.x + b.width / 2 ? 'left' : 'right';
@@ -286,7 +321,7 @@ function followCursor() {
     return;
   }
 
-  // Free horizontal positioning
+  // Free desktop positioning
   const next = { x: p.x - drag.ox, y: p.y - drag.oy };
 
   // Snap to top edge
@@ -732,6 +767,8 @@ function pollCursor() {
     suppressUntilLeave = false;
     setActive(false);
   } else if (!active && !suppressUntilLeave) {
+    // Stop ignoring mouse events immediately so clicks and drags are never dropped
+    win.setIgnoreMouseEvents(false);
     const delay = isAlertMode ? 0 : HOVER_INTENT_MS;
     if (Date.now() - enteredAt >= delay) {
       setActive(true);
@@ -862,6 +899,7 @@ app.on('second-instance', (_e, argv) => {
 
 // --- menus ---
 function appMenu() {
+  const positionMode = prefs.vertical ? 'vertical' : (prefs.docked ? 'top' : 'free');
   return Menu.buildFromTemplate([
     { label: 'YOVY-NAV', enabled: false },
     { type: 'separator' },
@@ -872,10 +910,33 @@ function appMenu() {
       click: (item) => { userHidden = !item.checked; updateVisibility(); notifyGeneral(); },
     },
     {
-      label: 'Vertical (dock left / right)',
+      label: 'Lock position (Fixed)',
       type: 'checkbox',
-      checked: prefs.vertical,
-      click: (item) => setVertical(item.checked),
+      checked: !!prefs.fixedPosition,
+      click: (item) => setFixedPosition(item.checked),
+    },
+    {
+      label: 'Position mode',
+      submenu: [
+        {
+          label: 'Horizontal (Top)',
+          type: 'radio',
+          checked: positionMode === 'top',
+          click: () => setPositionMode('top'),
+        },
+        {
+          label: 'Vertical (Side)',
+          type: 'radio',
+          checked: positionMode === 'vertical',
+          click: () => setPositionMode('vertical'),
+        },
+        {
+          label: 'Free Desktop',
+          type: 'radio',
+          checked: positionMode === 'free',
+          click: () => setPositionMode('free'),
+        },
+      ],
     },
     { label: 'Reset position', click: resetPosition },
     {
@@ -896,7 +957,15 @@ ipcMain.on('context-menu', () => appMenu().popup({ window: win }));
 // --- Settings window ---
 // General options live in main (position, startup); feature switches live in features.js.
 function generalState() {
-  return { shown: !userHidden, vertical: !!prefs.vertical, startWithWindows: startsWithWindows(), version: app.getVersion() };
+  const positionMode = prefs.vertical ? 'vertical' : (prefs.docked ? 'top' : 'free');
+  return {
+    shown: !userHidden,
+    vertical: !!prefs.vertical,
+    fixedPosition: !!prefs.fixedPosition,
+    positionMode,
+    startWithWindows: startsWithWindows(),
+    version: app.getVersion(),
+  };
 }
 function notifyGeneral() {
   prefsWindow.send('general', generalState());
@@ -985,6 +1054,8 @@ ipcMain.on('general-set', (_e, key, value) => {
     userHidden = !on;
     updateVisibility();
   } else if (key === 'vertical') setVertical(on);
+  else if (key === 'fixedPosition') setFixedPosition(on);
+  else if (key === 'positionMode') setPositionMode(value);
   else if (key === 'startWithWindows') setStartWithWindows(on);
   else if (key === 'resetPosition') resetPosition();
   notifyGeneral();

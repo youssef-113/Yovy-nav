@@ -1103,7 +1103,16 @@ function applyFeatures(f) {
 bridge.onFeatures(applyFeatures);
 bridge.onVisibility((v) => { state.visible = !!v; });
 bridge.features().then(applyFeatures);
-$('#open-settings').addEventListener('click', () => bridge.openSettings());
+const openSettingsBtn = $('#open-settings');
+if (openSettingsBtn) {
+  const triggerSettings = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    bridge.openSettings();
+  };
+  openSettingsBtn.addEventListener('click', triggerSettings);
+  openSettingsBtn.addEventListener('pointerdown', triggerSettings);
+}
 
 selectTab('media');
 drawTimer();

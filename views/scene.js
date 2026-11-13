@@ -95,7 +95,7 @@
   if (scCloseBtn) {
     scCloseBtn.addEventListener('pointerdown', doCloseScene);
     scCloseBtn.addEventListener('click', doCloseScene);
-  } end('close-btn'); });
+  }
 
   // Action button
   $('#sc-btn').addEventListener('click', (e) => {

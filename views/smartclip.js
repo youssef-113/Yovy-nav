@@ -4,7 +4,8 @@
   bridge.onDownloads((p) => { idmOnline = !!p?.online && !p?.outdated; });
 
   bridge.onClipSmart((s) => {
-    if (!feat('smartClipboard') || cardShowing()) return;
+    const isCard = typeof window.cardShowing === 'function' ? window.cardShowing() : false;
+    if (!feat('smartClipboard') || isCard) return;
     switch (s.type) {
       case 'url': {
         const dl = idmOnline;

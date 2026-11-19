@@ -979,6 +979,7 @@ ipcMain.handle('features-get', () => features.get());
 ipcMain.on('features-set', (_e, patch) => features.set(patch));
 ipcMain.on('features-reset', () => features.reset());
 ipcMain.on('reminder-preview', () => send('reminder-now'));
+ipcMain.on('water-preview', () => send('water-now'));
 ipcMain.on('greeting-preview', () => send('greeting-now'));
 ipcMain.on('cheer-preview', () => send('cheer-now'));
 ipcMain.handle('general-get', () => generalState());

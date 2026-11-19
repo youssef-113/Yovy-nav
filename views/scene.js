@@ -83,6 +83,11 @@
   };
   window.sceneShowing = () => !!current;
   window.endScene = end;
+  if (typeof globalThis !== 'undefined') {
+    globalThis.sceneShowing = window.sceneShowing;
+    globalThis.playScene = window.playScene;
+    globalThis.endScene = window.endScene;
+  }
 
   // Dismiss on close button (instant first-click response on pointerdown & click)
   const doCloseScene = (e) => {

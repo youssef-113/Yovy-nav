@@ -128,6 +128,13 @@ $$('.stepper').forEach((st) => st.addEventListener('click', (e) => {
   saved();
 }));
 $('#rm-preview').addEventListener('click', () => api.previewReminder());
+const waterPrevBtn = $('#water-preview');
+if (waterPrevBtn) {
+  waterPrevBtn.addEventListener('click', () => {
+    api.previewWater();
+    saved('Water reminder sent');
+  });
+}
 
 // ---- feature text inputs (e.g. userName) ----
 let nameDebounce = null;

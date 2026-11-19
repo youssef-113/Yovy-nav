@@ -184,7 +184,8 @@
   function flush() {
     if (!pending) return;
     const now = Date.now();
-    if (!state.visible || lastMode === 'expanded' || cardShowing() || window.sceneShowing?.() || (state.toast && now < state.toastUntil)) return;
+    const isCard = typeof window.cardShowing === 'function' ? window.cardShowing() : false;
+    if (!state.visible || lastMode === 'expanded' || isCard || window.sceneShowing?.() || (state.toast && now < state.toastUntil)) return;
     const c = pending;
     pending = null;
     showCard(c);

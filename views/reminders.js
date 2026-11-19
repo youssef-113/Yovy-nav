@@ -213,7 +213,13 @@
     previewing = true; // independent of the reminders switch
     show(item);
   };
+  window.hideCard = hide;
   window.cardShowing = () => state.reminderUntil > Date.now();
+  if (typeof globalThis !== 'undefined') {
+    globalThis.cardShowing = window.cardShowing;
+    globalThis.showCard = window.showCard;
+    globalThis.hideCard = window.hideCard;
+  }
 
   // "show one now" from the Settings window works even with reminders switched off
   let previewing = false;

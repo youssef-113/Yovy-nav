@@ -156,12 +156,13 @@
           <div class="card">
             <label class="row"><b>Water reminder</b><input type="checkbox" class="sw" data-feature="water"></label>
             <div class="row sub" data-needs="water"><b>Every</b>
-              <div class="stepper" data-num="waterEvery" data-steps="15,30,45,60,90,120,180,240" data-unit="min"><button data-dir="-1" aria-label="Less">−</button><output></output><button data-dir="1" aria-label="More">+</button></div>
+              <div class="stepper" data-num="waterEvery" data-steps="1,2,5,10,15,30,45,60,90,120,180,240" data-unit="min"><button data-dir="-1" aria-label="Less">−</button><output></output><button data-dir="1" aria-label="More">+</button></div>
             </div>
             <div class="row sub" data-needs="water"><b>Daily goal</b>
               <div class="stepper" data-num="waterGoal" data-steps="4,5,6,7,8,9,10,11,12,14,16" data-unit="glass"><button data-dir="-1" aria-label="Less">−</button><output></output><button data-dir="1" aria-label="More">+</button></div>
             </div>
           </div>
+          <div class="actions" data-needs="water"><button class="btn accent" id="water-preview">Remind me now</button></div>
         </div>
       </section>
 

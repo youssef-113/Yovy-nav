@@ -44,7 +44,7 @@ function open() {
       win.show();
       win.focus();
     }
-  }, 300);
+  }, 250);
   win.on('closed', () => { win = null; });
 }
 

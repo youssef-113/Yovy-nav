@@ -772,7 +772,8 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
   display: grid;
   place-items: center;
   color: var(--text-2);
-  cursor: pointer;
+  cursor: pointer !important;
+  pointer-events: auto !important;
   z-index: 50;
   background: rgba(255, 255, 255, .08);
   border: none;
@@ -1039,7 +1040,8 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
   display: grid;
   place-items: center;
   color: var(--text-2);
-  cursor: pointer;
+  cursor: pointer !important;
+  pointer-events: auto !important;
   z-index: 50;
   background: rgba(255, 255, 255, .08);
   border: none;

@@ -160,20 +160,29 @@
   setInterval(tick, 250);
 
   const doCloseRm = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     previewing = false;
     hide();
   };
   const rmCloseBtn = $('#rm-close');
   if (rmCloseBtn) {
     rmCloseBtn.addEventListener('pointerdown', doCloseRm);
+    rmCloseBtn.addEventListener('mousedown', doCloseRm);
     rmCloseBtn.addEventListener('click', doCloseRm);
+    rmCloseBtn.addEventListener('mouseup', doCloseRm);
   }
 
   // Dismiss on clicking background of the reminder
   layer.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('button, a, input, textarea, #rm-close')) return;
+    if (e.target.closest('a, input, textarea')) return;
+    previewing = false;
+    hide();
+  });
+  layer.addEventListener('click', (e) => {
+    if (e.target.closest('a, input, textarea')) return;
     previewing = false;
     hide();
   });

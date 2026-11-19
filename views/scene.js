@@ -22,7 +22,9 @@
 
   function end(how = 'closed') {
     bridge.suppressHover?.();
-    if (!current) return;
+    state.sceneUntil = 0;
+    card.classList.remove('on');
+    card.style.display = 'none'; // Force hide immediately!
     if (fallbackTimer) {
       clearTimeout(fallbackTimer);
       fallbackTimer = null;
@@ -31,12 +33,9 @@
       clearTimeout(blinkTimer);
       blinkTimer = null;
     }
-    if (how !== 'button') current.onClose?.();
-    state.sceneUntil = 0;
-    card.classList.remove('on');
-    card.style.display = 'none'; // Force hide immediately!
     const s = current;
     current = null;
+    if (s && how !== 'button') s.onClose?.();
     classes(false, s);
     // Force reset hover and mode so island does not spring open to 'expanded'
     state.hover = false;
@@ -70,7 +69,7 @@
 
     if (fallbackTimer) clearTimeout(fallbackTimer);
     fallbackTimer = setTimeout(() => {
-      if (current) end('timeout');
+      end('timeout');
     }, total + 600);
 
     bar.style.width = '100%';
@@ -87,14 +86,18 @@
 
   // Dismiss on close button (instant first-click response on pointerdown & click)
   const doCloseScene = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     end('close-btn');
   };
   const scCloseBtn = $('#sc-close');
   if (scCloseBtn) {
     scCloseBtn.addEventListener('pointerdown', doCloseScene);
+    scCloseBtn.addEventListener('mousedown', doCloseScene);
     scCloseBtn.addEventListener('click', doCloseScene);
+    scCloseBtn.addEventListener('mouseup', doCloseScene);
   }
 
   // Action button
@@ -107,20 +110,27 @@
 
   // Clicking anywhere on the scene card or on the character immediately dismisses it
   card.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('#sc-btn') || e.target.closest('#sc-close')) return;
+    if (e.target.closest('#sc-btn')) return;
+    end('card-click');
+  });
+  card.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#sc-btn')) return;
     end('card-click');
   });
   card.addEventListener('click', (e) => {
-    if (e.target.closest('#sc-btn') || e.target.closest('#sc-close')) return;
+    if (e.target.closest('#sc-btn')) return;
     end('card-click');
   });
+  island.addEventListener('pointerdown', () => {
+    if (current || state.sceneUntil > Date.now()) end('island-pointerdown');
+  });
   island.addEventListener('click', () => {
-    if (current) end('island-click');
+    if (current || state.sceneUntil > Date.now()) end('island-click');
   });
 
   // Pressing Escape dismisses active scene
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && current) end('escape');
+    if (e.key === 'Escape' && (current || state.sceneUntil > Date.now())) end('escape');
   });
 
   // countdown tick

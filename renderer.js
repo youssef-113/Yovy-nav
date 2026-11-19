@@ -277,9 +277,27 @@ island.addEventListener('click', (e) => {
     if (act) act();
     return;
   }
+  if (!justMoved && lastMode === 'scene') {
+    if (typeof window.endScene === 'function') window.endScene('island-click');
+    return;
+  }
   if (justMoved || lastMode === 'expanded' || lastMode === 'reminder' || lastMode === 'scene' || e.target.closest(NO_DRAG)) return;
   state.hover = true;
   render();
+});
+
+// Escape key dismisses active alerts, scenes, and toasts
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (typeof window.endScene === 'function' && window.sceneShowing?.()) {
+      window.endScene('escape');
+    }
+    if (state.toastUntil > Date.now()) {
+      state.toastUntil = 0;
+      island.classList.remove('prayer-alert');
+      render();
+    }
+  }
 });
 
 // ---------------- placement inside the window ----------------
@@ -1103,6 +1121,7 @@ function applyFeatures(f) {
 bridge.onFeatures(applyFeatures);
 bridge.onVisibility((v) => { state.visible = !!v; });
 bridge.features().then(applyFeatures);
+$('#open-settings').addEventListener('click', () => bridge.openSettings());
 const openSettingsBtn = $('#open-settings');
 if (openSettingsBtn) {
   const triggerSettings = (e) => {

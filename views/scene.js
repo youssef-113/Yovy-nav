@@ -46,7 +46,6 @@
   }
 
   window.playScene = (s) => {
-    if (anchor.vertical) return false; // no room beside a side-docked island
     current = s;
     classes(true, s);
     card.style.display = ''; // Re-enable display
@@ -62,15 +61,15 @@
     btn.hidden = !s.button;
     if (s.button) btn.textContent = s.button.label;
 
-    total = Math.min(s.ms || 7000, 8000);
+    total = s.ms || 25000;
     const now = Date.now();
     state.sceneUntil = now + total;
-    hardEndAt = now + total + 500;
+    hardEndAt = now + total + 60000;
 
     if (fallbackTimer) clearTimeout(fallbackTimer);
     fallbackTimer = setTimeout(() => {
       end('timeout');
-    }, total + 600);
+    }, total + 1000);
 
     bar.style.width = '100%';
     state.hover = false;
@@ -120,19 +119,12 @@
     scBtn.addEventListener('click', doBtn);
   }
 
-  // Clicking anywhere on the scene card or on the character immediately dismisses it
-  card.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('#sc-btn')) return;
-    end('card-click');
-  });
-  card.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#sc-btn')) return;
-    end('card-click');
-  });
-  card.addEventListener('click', (e) => {
-    if (e.target.closest('#sc-btn')) return;
-    end('card-click');
-  });
+  // Prevent clicks inside the scene card from dismissing accidentally
+  card.addEventListener('pointerdown', (e) => e.stopPropagation());
+  card.addEventListener('mousedown', (e) => e.stopPropagation());
+  card.addEventListener('click', (e) => e.stopPropagation());
+
+  // Clicking on the pet island itself dismisses the scene
   island.addEventListener('pointerdown', () => {
     if (current || state.sceneUntil > Date.now()) end('island-pointerdown');
   });
@@ -145,10 +137,14 @@
     if (e.key === 'Escape' && (current || state.sceneUntil > Date.now())) end('escape');
   });
 
-  // countdown tick
+  // countdown tick (pauses when hovering so the user can click easily)
   setInterval(() => {
     if (!current) return;
     const now = Date.now();
+    if (state.hover) {
+      state.sceneUntil = Math.min(state.sceneUntil + 250, hardEndAt);
+      return;
+    }
     if (now >= state.sceneUntil || now >= hardEndAt) return end('timed-out');
     bar.style.width = `${Math.max(0, (state.sceneUntil - now) / total) * 100}%`;
   }, 250);

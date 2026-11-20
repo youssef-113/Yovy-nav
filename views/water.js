@@ -42,10 +42,10 @@
       ? `Daily goal reached (${g} glasses) 🎉 — one more won't hurt`
       : `<b>${n}</b> of ${g} glasses today`;
 
-    // 1. Try character scene first (plays in horizontal mode)
+    // 1. Try character scene first (plays in both horizontal & vertical modes with Drop pet!)
     const played = (typeof window.playScene === 'function') && window.playScene({
       who: 'drop', props: ['glass'], arms: 'hold', tone: 'water', badge: '💧 Water',
-      title: 'Drink a glass of water', sub, ms: 20000,
+      title: 'Drink a glass of water', sub, ms: 30000,
       button: { label: 'I drank ✓', onClick: drank },
       onClose: () => { activeMs = Math.max(0, everyMs() - SNOOZE_MS); },
     });

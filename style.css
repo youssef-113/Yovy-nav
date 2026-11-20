@@ -1070,7 +1070,28 @@ svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 .sc-sub { position: relative; font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
 .sc-sub b { color: rgb(var(--sc-rgb)); }
 .sc-sub bdi { display: inline-block; margin-inline-start: 4px; padding: 0 9px; border-radius: 99px; background: rgba(var(--sc-rgb), .16); color: rgb(var(--sc-rgb)); font-weight: 700; font-size: 13px; }
-.sc-btn { position: relative; margin-top: 8px; height: 32px; padding: 0 18px; border-radius: 99px; background: rgb(var(--sc-rgb)); color: #06121c; font-weight: 700; font-size: 13.5px; transition: transform .2s var(--spring); }
+.sc-btn {
+  position: relative;
+  margin-top: 10px;
+  min-height: 34px;
+  padding: 0 20px;
+  border-radius: 99px;
+  background: rgb(var(--sc-rgb));
+  color: #06121c;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  border: none;
+  outline: none;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px -2px rgba(var(--sc-rgb), .45);
+  transition: transform .15s ease, filter .15s ease;
+}
+.sc-btn:hover { filter: brightness(1.1); transform: scale(1.04); }
 .sc-btn:active { transform: scale(.94); }
 .sc-bar { position: absolute; left: 30px; right: 30px; bottom: 10px; height: 2px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
 .sc-bar b { display: block; height: 100%; width: 100%; margin-right: auto; background: rgb(var(--sc-rgb)); box-shadow: 0 0 6px rgb(var(--sc-rgb)); transition: width .25s linear; }

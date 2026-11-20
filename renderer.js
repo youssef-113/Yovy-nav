@@ -98,7 +98,7 @@ function compactKind() {
 function currentMode() {
   const now = Date.now();
   // a character scene (adhan, water, focus) owns the island until it ends or is closed
-  if (state.sceneUntil > now && !anchor.vertical) return 'scene';
+  if (state.sceneUntil > now) return 'scene';
   // a toast with a button (Join) stays under the cursor so it can be clicked
   if (state.toastAction && state.toast && now < state.toastUntil && !state.pinned) return 'toast';
   // a reminder stays put under the cursor so it can be read (hovering pauses it)
@@ -320,15 +320,45 @@ function positionIsland() {
     [w, h] = anchor.addr === 'line' ? [90, 3] : [anchor.sw, anchor.sh];
   }
   if (lastMode === 'scene') {
-    // the body on the right, the card on its left: [card 430][gap 22][body 64], kept inside the window
-    const CW = 516;
-    const left = Math.min(Math.max(anchor.x - CW / 2, 8), window.innerWidth - CW - 8);
-    const top = anchor.docked ? 30 : Math.min(Math.max(anchor.y + 22, 10), window.innerHeight - 130);
-    island.style.setProperty('--x', `${Math.round(left + CW - 64)}px`);
-    island.style.setProperty('--y', `${Math.round(top)}px`);
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
     const card = $('#scene-card');
-    card.style.left = `${Math.round(left)}px`;
-    card.style.top = `${Math.round(top - 14)}px`;
+    const cardW = 430;
+    const gap = 20;
+
+    let bodyX;
+    let bodyY;
+    let cardX;
+    let cardY;
+
+    if (anchor.vertical) {
+      const isLeft = anchor.side === 'left';
+      bodyY = clamp(anchor.y - 35, 10, H - 90);
+      cardY = clamp(bodyY - 20, 10, H - 170);
+
+      if (isLeft) {
+        bodyX = 20;
+        cardX = bodyX + 64 + gap;
+      } else {
+        bodyX = W - 64 - 20;
+        cardX = bodyX - cardW - gap;
+      }
+    } else {
+      // the body on the right, the card on its left: [card 430][gap 22][body 64], kept inside the window
+      const CW = cardW + gap + 64;
+      const left = Math.min(Math.max(anchor.x - CW / 2, 8), W - CW - 8);
+      const top = anchor.docked ? 30 : Math.min(Math.max(anchor.y + 22, 10), H - 130);
+      bodyX = left + CW - 64;
+      bodyY = top;
+      cardX = left;
+      cardY = top - 14;
+    }
+
+    island.style.setProperty('--x', `${Math.round(bodyX)}px`);
+    island.style.setProperty('--y', `${Math.round(bodyY)}px`);
+    card.style.left = `${Math.round(cardX)}px`;
+    card.style.top = `${Math.round(cardY)}px`;
     wake();
     return;
   }

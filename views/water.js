@@ -57,20 +57,28 @@
       window.showCard({
         kind: 'water',
         badge: '💧 Water',
-        html: `<span class="big">Drink a glass of water 💧</span><span class="ln">${sub}</span><div style="margin-top:8px"><button id="rm-water-drank" class="btn accent" style="padding:4px 12px;font-size:12px;border-radius:12px;cursor:pointer;background:#38bdf8;color:#000;font-weight:700;border:none;">I drank ✓</button></div>`,
+        html: `<span class="big">Drink a glass of water 💧</span><span class="ln">${sub}</span><div style="margin-top:8px"><button id="rm-water-drank" class="btn accent" style="padding:6px 16px;font-size:13px;border-radius:14px;cursor:pointer;background:#38bdf8;color:#05192d;font-weight:700;border:none;pointer-events:auto;" onclick="if(window.logWater){window.logWater();window.hideCard?.();}event.stopPropagation();">I drank ✓</button></div>`,
         ref: n >= g ? 'Goal reached 🎉' : `${n} / ${g} glasses`,
-        ms: 18000,
+        ms: 20000,
       });
-      setTimeout(() => {
+      const bindBtn = () => {
         const btn = document.getElementById('rm-water-drank');
         if (btn) {
-          btn.onclick = (e) => {
-            e.stopPropagation();
+          const onDrank = (e) => {
+            if (e) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
             drank();
             if (typeof window.hideCard === 'function') window.hideCard();
           };
+          btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+          btn.addEventListener('mousedown', (e) => e.stopPropagation());
+          btn.addEventListener('click', onDrank);
         }
-      }, 50);
+      };
+      bindBtn();
+      setTimeout(bindBtn, 50);
       return true;
     }
 

@@ -101,6 +101,49 @@
     }
   }
 
+  function triggerAdhan(k = 'fajr', timeStr = null) {
+    chime();
+    const prayerName = NAMES[k] || k;
+    const tStr = timeStr || clock(new Date());
+    const d = days();
+    const iftar = k === 'maghrib' && isRamadan(d) ? ' · تقبّل الله صيامك' : '';
+    const shown = feat('YovyPrayer') && window.playScene?.({
+      who: 'Yovy', props: ['cap', 'rug'], arms: 'fold', tone: 'gold', badge: '☾ الأذان', lang: 'ar',
+      title: 'أَقِمْ صَلَاتَكَ', quran: true,
+      sub: `حان الآن وقت صلاة <b>${prayerName}</b> <bdi dir="ltr">(${tStr})</bdi>${iftar}`,
+      ms: 8000,
+    });
+    if (!shown) {
+      if (typeof window.showCard === 'function') {
+        window.showCard({
+          kind: 'prayer',
+          badge: '☾ الأذان',
+          html: `<span class="big" style="color:#ffd479;font-weight:800;font-size:22px;">أَقِمْ صَلَاتَكَ 🕌</span><span class="ln" style="font-size:16px;margin-top:6px;">حان الآن وقت صلاة <b>${prayerName}</b> <bdi dir="ltr">(${tStr})</bdi>${iftar}</span>`,
+          ref: 'حيّ على الصلاة · حيّ على الفلاح',
+          ms: 12000,
+        });
+      }
+      island.classList.add('prayer-alert');
+      showToast('prayer', `حان الآن موعد صلاة ${prayerName}`, tStr, 0, 7000);
+      setTimeout(() => island.classList.remove('prayer-alert'), 7200);
+    }
+    try {
+      if (typeof Notification !== 'undefined') {
+        if (Notification.permission === 'granted') {
+          new Notification(`أذان صلاة ${prayerName} 🕌`, {
+            body: `حان الآن وقت صلاة ${prayerName} (${tStr})${iftar}`,
+            silent: true,
+          });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }
+    } catch {}
+  }
+  window.triggerAdhan = triggerAdhan;
+  window.previewAdhan = (k) => triggerAdhan(k || 'dhuhr');
+  bridge.onPrayerNow?.(() => triggerAdhan('dhuhr'));
+
   function remind(d, now) {
     if (!alertsOn) return;
     for (const k of PRAYERS) {
@@ -110,20 +153,7 @@
       if (diff <= 0 && diff > -60000 && !fired.has(`${id}-now`)) {
         fired.add(`${id}-now`);
         note('🕌', `أذان ${NAMES[k]} ${clock(t)}`);
-        chime();
-        // Yovy in her prayer cap on the rug; the plain toast when she's off or there's no room
-        const iftar = k === 'maghrib' && isRamadan(d) ? ' · تقبّل الله صيامك' : '';
-        const shown = feat('YovyPrayer') && window.playScene?.({
-          who: 'Yovy', props: ['cap', 'rug'], arms: 'fold', tone: 'gold', badge: '☾ الأذان', lang: 'ar',
-          title: 'أَقِمْ صَلَاتَكَ', quran: true,
-          sub: `حان الآن وقت صلاة <b>${NAMES[k]}</b><bdi dir="ltr">${clock(t)}</bdi>${iftar}`,
-          ms: 7000,
-        });
-        if (!shown) {
-          island.classList.add('prayer-alert');
-          showToast('prayer', `حان الآن موعد صلاة ${NAMES[k]}`, clock(t), 0, 6000);
-          setTimeout(() => island.classList.remove('prayer-alert'), 6200);
-        }
+        triggerAdhan(k, clock(t));
       } else if (diff > 0 && diff <= SOON_MIN * 60000 && diff > (SOON_MIN - 1) * 60000 && !fired.has(`${id}-soon`)) {
         fired.add(`${id}-soon`);
         showToast('prayer-soon', `${NAMES[k]} بعد ${SOON_MIN} دقائق`, clock(t), 0, 5000);

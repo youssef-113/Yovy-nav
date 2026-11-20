@@ -135,6 +135,13 @@ if (waterPrevBtn) {
     saved('Water reminder sent');
   });
 }
+const prayerPrevBtn = $('#prayer-preview');
+if (prayerPrevBtn) {
+  prayerPrevBtn.addEventListener('click', () => {
+    api.previewPrayer();
+    saved('Adhan alert sent');
+  });
+}
 
 // ---- feature text inputs (e.g. userName) ----
 let nameDebounce = null;

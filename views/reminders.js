@@ -177,12 +177,12 @@
 
   // Dismiss on clicking background of the reminder
   layer.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('a, input, textarea')) return;
+    if (e.target.closest('a, button, input, textarea, .btn, .rm-x')) return;
     previewing = false;
     hide();
   });
   layer.addEventListener('click', (e) => {
-    if (e.target.closest('a, input, textarea')) return;
+    if (e.target.closest('a, button, input, textarea, .btn, .rm-x')) return;
     previewing = false;
     hide();
   });

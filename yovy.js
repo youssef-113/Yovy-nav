@@ -209,7 +209,7 @@ function setFixedPosition(on) {
 
 function setPositionMode(mode) {
   if (prefs.fixedPosition) return;
-  const d = primaryDisplay();
+  const d = screen.getPrimaryDisplay();
   const b = d.bounds;
   if (mode === 'top') {
     prefs.vertical = false;
@@ -980,6 +980,7 @@ ipcMain.on('features-set', (_e, patch) => features.set(patch));
 ipcMain.on('features-reset', () => features.reset());
 ipcMain.on('reminder-preview', () => send('reminder-now'));
 ipcMain.on('water-preview', () => send('water-now'));
+ipcMain.on('prayer-preview', () => send('prayer-now'));
 ipcMain.on('greeting-preview', () => send('greeting-now'));
 ipcMain.on('cheer-preview', () => send('cheer-now'));
 ipcMain.handle('general-get', () => generalState());

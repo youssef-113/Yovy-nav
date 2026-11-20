@@ -106,12 +106,19 @@
   }
 
   // Action button
-  $('#sc-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const fn = current?.button?.onClick;
-    end('button');
-    fn?.();
-  });
+  const scBtn = $('#sc-btn');
+  if (scBtn) {
+    const doBtn = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const fn = current?.button?.onClick;
+      end('button');
+      fn?.();
+    };
+    scBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    scBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    scBtn.addEventListener('click', doBtn);
+  }
 
   // Clicking anywhere on the scene card or on the character immediately dismisses it
   card.addEventListener('pointerdown', (e) => {

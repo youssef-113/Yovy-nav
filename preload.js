@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('Yovy', {
   ready: () => ipcRenderer.send('island-ready'),
   onReminderNow: on('reminder-now'),
   onWaterNow: on('water-now'),
+  onPrayerNow: on('prayer-now'),
   onGreetingNow: on('greeting-now'),
   onCheerNow: on('cheer-now'),
   onPowerWake: on('power-wake'),

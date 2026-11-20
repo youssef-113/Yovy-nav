@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('prefs', {
   window: (action) => ipcRenderer.send('prefs-window', action),
   previewReminder: () => ipcRenderer.send('reminder-preview'),
   previewWater: () => ipcRenderer.send('water-preview'),
+  previewPrayer: () => ipcRenderer.send('prayer-preview'),
   previewGreeting: () => ipcRenderer.send('greeting-preview'),
   bridgeStatus: () => ipcRenderer.invoke('bridge-status'),
   openLog: () => ipcRenderer.send('open-log'),

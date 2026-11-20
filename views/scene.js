@@ -75,8 +75,17 @@
     state.hover = false;
     render();
     positionIsland();
-    if (typeof reportRect === 'function') reportRect(true);
-    requestAnimationFrame(() => card.classList.add('on'));
+    requestAnimationFrame(() => {
+      card.classList.add('on');
+      if (typeof reportRect === 'function') reportRect(true);
+    });
+    if (typeof reportRect === 'function') {
+      reportRect(true);
+      setTimeout(() => reportRect(true), 60);
+      setTimeout(() => reportRect(true), 150);
+      setTimeout(() => reportRect(true), 300);
+      setTimeout(() => reportRect(true), 500);
+    }
     startBlink();
     return true;
   };
@@ -104,19 +113,26 @@
     scCloseBtn.addEventListener('mouseup', doCloseScene);
   }
 
-  // Action button
+  // Action button (instant execution on first pointerdown, mousedown, or click)
   const scBtn = $('#sc-btn');
   if (scBtn) {
+    let handled = false;
     const doBtn = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      if (handled) return;
+      handled = true;
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       const fn = current?.button?.onClick;
       end('button');
-      fn?.();
+      try { fn?.(); } catch (err) { console.error(err); }
+      setTimeout(() => { handled = false; }, 600);
     };
-    scBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
-    scBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    scBtn.addEventListener('pointerdown', doBtn);
+    scBtn.addEventListener('mousedown', doBtn);
     scBtn.addEventListener('click', doBtn);
+    window.handleScBtn = doBtn;
   }
 
   // Prevent clicks inside the scene card from dismissing accidentally

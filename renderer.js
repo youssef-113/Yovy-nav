@@ -334,8 +334,8 @@ function positionIsland() {
 
     if (anchor.vertical) {
       const isLeft = anchor.side === 'left';
-      bodyY = clamp(anchor.y - 35, 10, H - 90);
-      cardY = clamp(bodyY - 20, 10, H - 170);
+      bodyY = clamp(anchor.y - 35, 20, H - 90);
+      cardY = clamp(bodyY - 30, 10, Math.max(10, H - 230));
 
       if (isLeft) {
         bodyX = 20;
@@ -345,14 +345,14 @@ function positionIsland() {
         cardX = bodyX - cardW - gap;
       }
     } else {
-      // the body on the right, the card on its left: [card 430][gap 22][body 64], kept inside the window
+      // the body on the right, the card on its left: [card 430][gap 20][body 64], kept inside the window
       const CW = cardW + gap + 64;
       const left = Math.min(Math.max(anchor.x - CW / 2, 8), W - CW - 8);
-      const top = anchor.docked ? 30 : Math.min(Math.max(anchor.y + 22, 10), H - 130);
+      const top = anchor.docked ? 20 : Math.min(Math.max(anchor.y + 16, 10), Math.max(10, H - 230));
       bodyX = left + CW - 64;
-      bodyY = top;
+      bodyY = top + 14;
       cardX = left;
-      cardY = top - 14;
+      cardY = top;
     }
 
     island.style.setProperty('--x', `${Math.round(bodyX)}px`);

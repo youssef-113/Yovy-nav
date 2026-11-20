@@ -636,7 +636,7 @@ function scheduleCapture(ms) {
 async function captureBackdrop() {
   // Only capture when actively hovered/expanded; skipped while idle, dragging or hidden, or when a solid theme is active
   const isSolidTheme = features.SOLID_THEMES && features.SOLID_THEMES.includes(features.get().theme);
-  if (isSolidTheme || !active || capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
+  if (isAlertMode || isSolidTheme || !active || capturing || drag || !win || win.isDestroyed() || !win.isVisible()) return;
   capturing = true;
   try {
     const display = screen.getDisplayMatching(win.getBounds());
@@ -725,7 +725,7 @@ function setActive(on) {
   if (on === active) return;
   active = on;
   win.setIgnoreMouseEvents(!on);
-  if (on) scheduleCapture(60);
+  if (on && !isAlertMode) scheduleCapture(60);
   if (!on && win.isFocusable()) win.setFocusable(false);
   send('hover', on);
 }
@@ -755,7 +755,7 @@ function pollCursor() {
   const x = p.x - b.x;
   const y = p.y - b.y;
   sendNear(x, y);
-  const pad = active ? 8 : 2;
+  const pad = active ? (isAlertMode ? 24 : 8) : (isAlertMode ? 16 : 2);
   const now =
     x >= islandRect.x - pad &&
     x <= islandRect.x + islandRect.width + pad &&

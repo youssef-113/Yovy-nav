@@ -651,7 +651,7 @@
     <button class="sc-x" id="sc-close" aria-label="Close" title="Close"><svg class="s" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <span class="sc-title" id="sc-title"></span>
     <span class="sc-sub" id="sc-sub"></span>
-    <button class="sc-btn" id="sc-btn" hidden></button>
+    <button class="sc-btn" id="sc-btn" onclick="window.handleScBtn?.(event)" onpointerdown="window.handleScBtn?.(event)" hidden></button>
     <span class="sc-bar"><b></b></span>
   </div>
   <script src="renderer.js"></script>
